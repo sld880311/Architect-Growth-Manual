@@ -1,6 +1,20 @@
-[TOC]
+# 导航
+
+<!-- TOC -->
+
+- [导航](#导航)
+- [语法](#语法)
+- [常用语法](#常用语法)
+- [显示列](#显示列)
+- [作用](#作用)
+- [VIRT RES SHR的准确含义](#virt-res-shr的准确含义)
+- [参考](#参考)
+
+<!-- /TOC -->
+
 # 语法
-```
+
+```bash
 [root@incloudos logs]# top -h
   procps-ng version 3.3.10
 Usage:
@@ -20,12 +34,25 @@ s – 改变画面更新周期
 也就是Mem前面，会有Kib、MiB、GiB等单位变化，
 但是数字后面不会直接写明单位。
 ```
-# 常用语法           
+# 常用语法
 * top查看进程使用资源情况
 * top -c显示详细的进程信息
 * top -bn1静态显示所有进程
 * q退出，数值1显示所有核cpu，大写字母M按内存使用排序，大写字母P按照cpu使用排序
-![](images/screenshot_1587212039584.png)
+
+```bash
+top - 19:40:49 up 104 days, 11:55,  1 user,  load average: 0.00, 0.01, 0.05
+Tasks:  87 total,   2 running,  85 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem :  2046936 total,   148592 free,   282184 used,  1616160 buff/cache
+KiB Swap:        0 total,        0 free,        0 used.  1461432 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND
+    1 root      20   0  125496   3980   2516 S  0.0  0.2   5:54.39 systemd
+    2 root      20   0       0      0      0 S  0.0  0.0   0:00.25 kthreadd
+    4 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 kworker/0:0H
+```
+
 # 显示列
 默认情况下仅显示比较重要的 PID、USER、PR、NI、VIRT、RES、SHR、S、%CPU、%MEM、TIME+、COMMAND 列。可以通过下面的快捷键来更改显示内容。通过 f 键可以选择显示的内容。按 f 键之后会显示列的列表，按 a-z 即可显示或隐藏对应的列，最后按回车键确定。按 o 键可以改变列的显示顺序。按小写的 a-z 可以将相应的列向右移动，而大写的 A-Z 可以将相应的列向左移动。最后按回车键确定。按大写的 F 或 O 键，然后按 a-z 可以将进程按照相应的列进行排序。而大写的 R 键可以将当前的排序倒转。
 <style type="text/css">

@@ -1,9 +1,11 @@
+# 导航
+
 [TOC]
 # 概述
 iostat 主要用于输出磁盘IO 和 CPU的统计信息。
 iostat属于sysstat软件包。可以用yum install sysstat 直接安装。
 # 用法
-```
+```bash
 Usage: iostat [ options ] [ <interval> [ <count> ] ]
 Options are:
 [ -c ] [ -d ] [ -h ] [ -k | -m ] [ -N ] [ -t ] [ -V ] [ -x ] [ -y ] [ -z ]
@@ -25,7 +27,18 @@ Options are:
 
 # 场景说明
 ## 显示所有设备负载情况
-![](images/screenshot_1587265045224.png)    
+
+```bash
+Linux 3.10.0-1062.4.1.el7.x86_64 (instance-gctg007a) 	04/20/2020 	_x86_64_	(1 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.60    0.05    0.46    0.04    0.01   98.85
+
+Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+vda               1.33         0.07        11.68     657419  105232080
+
+```
+
 | 选项    | 说明                                                        |
 |---------|-------------------------------------------------------------|
 | 第一行  | 最上面指示系统版本、主机名和当前日期                        |
@@ -66,7 +79,15 @@ Options are:
 ## iostat -t：报告每秒向终端读取和写入的字符数。
 ## iostat -d -k 1 1：查看TPS和吞吐量信息            
 ## iostat -d -x -k 1 1：查看设备使用率（%util）、响应时间（await）
-![](images/screenshot_1587265440845.png)
+
+```bash
+Linux 3.10.0-1062.4.1.el7.x86_64 (instance-gctg007a) 	04/20/2020 	_x86_64_	(1 CPU)
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+vda               0.00     1.14    0.00    1.32     0.07    11.68    17.72     0.00    0.87    5.07    0.86   0.47   0.06
+
+```
+
 | 选项     | 说明                                                                                                                 |
 |----------|----------------------------------------------------------------------------------------------------------------------|
 | rrqm/s   | 每秒对该设备的读请求被合并次数，文件系统会对读取同块(block)的请求进行合并                                            |
