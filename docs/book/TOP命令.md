@@ -212,6 +212,3 @@ SHR是RES中”映射至文件”的物理内存总和。包括：
 [10.1-10.5 w查看系统负载 vmstat , top, sar, nload](http://blog.51cto.com/13578154/2088684)
 [Linux TOP官方帮助文档](http://man7.org/linux/man-pages/man1/top.1.html)
 
-# 支持我
-<img src="images/微信支付.png" width = "200" height = "250" div align=right />
-<img src="images/支付宝支付.png" width = "200" height = "250" div align=right />

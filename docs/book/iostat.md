@@ -84,7 +84,8 @@ Options are:
 | await    | 平均每次IO请求等待时间(包括等待时间和处理时间，毫秒为单位)                                                           |
 | svctm    | 平均每次IO请求的处理时间(毫秒为单位)                                                                                 |
 | %util    | 采用周期内用于IO操作的时间比率，即IO队列非空的时间比率；一秒中有百分之多少的时间用于 I/O 操作，即被io消耗的cpu百分比 |
->  <font color="red">**备注：如果 %util 接近 100%，说明产生的I/O请求太多，I/O系统已经满负荷，该磁盘可能存在瓶颈。如果 svctm 比较接近 await，说明 I/O 几乎没有等待时间；如果 await 远大于 svctm，说明I/O 队列太长，io响应太慢，则需要进行必要优化。如果avgqu-sz比较大，也表示有当量io在等待。**</font>
+>  <font color="red">**备注：如果 %util 接近 100%，说明产生的I/O请求太多，I/O系统已经满负荷，该磁盘可能存在瓶颈。如果 svctm 比较接近 await，说明 I/O 几乎没有等待时间；如果 await 远大于 svctm，说明I/O 队列太长，io响应太慢，则需要进行必要优化。如果avgqu-sz比较大，也表示有当量io在等待。**
+</font>
 
 ### 重点关注参数
 ```
@@ -98,6 +99,4 @@ Options are:
 
 ## iostat -c 1 2：间隔1秒显示一次，总共显示2次（查看CPU的状态）
 
-# 支持我
-<img src="images/微信支付.png" width = "200" height = "250" div align=right />
-<img src="images/支付宝支付.png" width = "200" height = "250" div align=right />
+
