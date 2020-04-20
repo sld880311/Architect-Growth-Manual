@@ -7,7 +7,7 @@
 
 - 目录阅读：[进入](https://github.com/sld880311/Architect-Growth-Manual/blob/master/SUMMARY.md)
 
-- GitHub Pages 完整阅读：[进入](www.sunliaodong.cn)
+- GitHub Pages 完整阅读：[进入](https://github.com/sld880311/Architect-Growth-Manual/blob/master/docs/index.html)
 
 ## 支持我
  <div align="left">
