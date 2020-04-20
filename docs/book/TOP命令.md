@@ -220,22 +220,23 @@ SHR：shared memory 共享内存</br>
 
 # 作用
 top命令作为Linux下最常用的性能分析工具之一，可以监控、收集进程的CPU、IO、内存使用情况。比如我们可以通过top命令获得一个进程使用了多少虚拟内存（VIRT）、物理内存（RES）、共享内存（SHR）。
-# VIRT RES SHR的准确含义            
-top命令通过解析/proc/<pid>/statm统计VIRT和RES和SHR字段值。
-VIRT是申请的虚拟内存总量。
-RES是进程使用的物理内存总和。
-SHR是RES中”映射至文件”的物理内存总和。包括：
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;程序的代码段。
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;动态库的代码段。
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过mmap做的文件映射。
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过mmap做的匿名映射，但指明了MAP_SHARED属性。
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通过shmget申请的共享内存。
-/proc/<pid>/smaps内Shared_*统计的是RES中映射数量>=2的物理内存。
-/proc/<pid>/smaps内Private_*统计的是RES中映射数量=1的物理内存。
+# VIRT RES SHR的准确含义
+
+1. top命令通过解析/proc/<pid>/statm统计VIRT和RES和SHR字段值。
+2. VIRT是申请的虚拟内存总量。
+3. RES是进程使用的物理内存总和。
+4. SHR是RES中”映射至文件”的物理内存总和。包括：
+   - 程序的代码段。
+   - 动态库的代码段。
+   - 通过mmap做的文件映射。
+   - 通过mmap做的匿名映射，但指明了MAP_SHARED属性。
+   - 通过shmget申请的共享内存。
+5. /proc/<pid>/smaps内Shared_*统计的是RES中映射数量>=2的物理内存。
+6. /proc/<pid>/smaps内Private_*统计的是RES中映射数量=1的物理内存。
 
 # 参考            
-[剖析top命令显示的VIRT RES SHR值](http://blog.sina.com.cn/s/blog_4e41487001016eio.html)
-[top命令查看线程信息和jstack使用介绍](https://www.cnblogs.com/shengulong/p/8513652.html)
-[10.1-10.5 w查看系统负载 vmstat , top, sar, nload](http://blog.51cto.com/13578154/2088684)
-[Linux TOP官方帮助文档](http://man7.org/linux/man-pages/man1/top.1.html)
+- [剖析top命令显示的VIRT RES SHR值](http://blog.sina.com.cn/s/blog_4e41487001016eio.html)
+- [top命令查看线程信息和jstack使用介绍](https://www.cnblogs.com/shengulong/p/8513652.html)
+- [10.1-10.5 w查看系统负载 vmstat , top, sar, nload](http://blog.51cto.com/13578154/2088684)
+- [Linux TOP官方帮助文档](http://man7.org/linux/man-pages/man1/top.1.html)
 

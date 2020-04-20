@@ -19,9 +19,8 @@
 
 <!-- /TOC -->
 # 说明
-<p>
+
 &emsp;&emsp;Condition在jdk1.5中开始出现，主要是用来替代传统Object对象中的wait和notify方法，Object的wait和notify/notify是与对象监视器配合完成线程间的等待/通知机制，而Condition与Lock配合完成等待通知机制，前者是java底层级别的，后者是语言级别的，具有更高的可控制性和扩展性相比来说更加安全和  高效。
-</p>
 
 # Condition与Object的比对
 
