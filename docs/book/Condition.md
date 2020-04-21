@@ -172,6 +172,7 @@ private transient Node lastWaiter;
 1. 调用condition.await方法后线程依次尾插入到等待队列中，如图队列中的线程引用依次为Thread-0,Thread-1,Thread-2....Thread-8；
 2. 等待队列是一个单向队列。
 3.  多次调用lock.newCondition()方法创建多个condition对象，也就是一个lock可以持有多个等待队列。而在之前利用Object的方式实际上是指在对象Object对象监视器上只能拥有一个同步队列和一个等待队列，而并发包中的Lock拥有一个同步队列和多个等待队列。
+
 <div align=center>
 
 ![](../images/condition_aqs.png)
