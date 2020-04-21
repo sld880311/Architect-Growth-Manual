@@ -343,11 +343,11 @@
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: '架构师成长手册',
-      repo: 'https://github.com/sld880311/Architect-Growth-Manual',
-	//   loadSidebar: true,
-	  subMaxLevel: 3,
-	   search: {
+        name: '架构师成长手册',
+        repo: 'https://github.com/sld880311/Architect-Growth-Manual',
+	//  loadSidebar: true,
+	    subMaxLevel: 3,
+	    search: {
             paths: 'auto',
             placeholder: '🔍 点击搜索 ',
             noData: '😞 没有结果! ',
@@ -361,7 +361,9 @@
 		},
 		pagination: {
 			previousText: '上一章节',
-			nextText: '下一章节',
+            nextText: '下一章节',
+            crossChapter: true,
+            crossChapterText: true,
 		},
 	  coverpage: true
     }

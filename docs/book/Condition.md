@@ -1,7 +1,5 @@
-# 导航
 <!-- TOC -->
 
-- [导航](#%e5%af%bc%e8%88%aa)
 - [说明](#%e8%af%b4%e6%98%8e)
 - [Condition与Object的比对](#condition%e4%b8%8eobject%e7%9a%84%e6%af%94%e5%af%b9)
 - [等待方法](#%e7%ad%89%e5%be%85%e6%96%b9%e6%b3%95)
@@ -165,14 +163,20 @@ private transient Node firstWaiter;
 /** Last node of condition queue. */
 private transient Node lastWaiter;
 ```
+<div align=center>
 
-![](../images/condition_queue.png)             
+![](../images/condition_queue.png)
+
+</div>
 
 1. 调用condition.await方法后线程依次尾插入到等待队列中，如图队列中的线程引用依次为Thread-0,Thread-1,Thread-2....Thread-8；
 2. 等待队列是一个单向队列。
 3.  多次调用lock.newCondition()方法创建多个condition对象，也就是一个lock可以持有多个等待队列。而在之前利用Object的方式实际上是指在对象Object对象监视器上只能拥有一个同步队列和一个等待队列，而并发包中的Lock拥有一个同步队列和多个等待队列。
+<div align=center>
 
 ![](../images/condition_aqs.png)
+
+</div>
 
 # await原理
 
@@ -270,8 +274,11 @@ final int fullyRelease(Node node) {
     }
 }
 ```
+<div align=center>
 
 ![](../images/condition_await.png)
+
+</div>
              
 
 调用condition.await方法的线程必须是已经获得了lock，也就是当前线程是同步队列中的头结点。调用该方法后会使得当前线程所封装的Node尾插入到等待队列中
@@ -320,9 +327,13 @@ private void doSignal(Node first) {
              
 
 调用condition的signal的前提条件是当前线程已经获取了lock，该方法会使得等待队列中的头节点即等待时间最长的那个节点移入到同步队列，而移入到同步队列后才有机会使得等待线程被唤醒，即从await方法中的LockSupport.park(this)方法中返回，从而才有机会使得调用await方法的线程成功退出。
+<div align=center>
 
-![](../images/condition_signal.png)
+![sginal执行流程](../images/condition_signal.png)
+
+</div>
 
 # 参考
-[详解Condition的await和signal等待/通知机制](https://www.jianshu.com/p/28387056eeb4)
+1. [详解Condition的await和signal等待/通知机制](https://www.jianshu.com/p/28387056eeb4)
+2. 《Java并发编程的艺术》
 
