@@ -3,9 +3,10 @@
 ## [JAVA并发编程](book/JAVA并发编程.md)
 
 * [互斥同步](book/互斥同步.md)
-  * [线程协作（生产-消费者模型）](book/线程协作（生产-消费者模型）.md)
-    * [Condition](book/Condition.md)
-* [JAVA基础](book/JAVA基础.md)
+* [线程协作（生产-消费者模型）](book/线程协作（生产-消费者模型）.md)
+  * [Condition](book/Condition.md)
+* [ThreadLocal 作用（线程本地存储）-数据隔离](docs/book/ThreadLocal.md)
+## [JAVA基础](book/JAVA基础.md)
   * [JAVA内部类](book/内部类.md)
 
 ## [JVM](book/JVM.md)

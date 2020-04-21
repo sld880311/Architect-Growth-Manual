@@ -5,6 +5,7 @@
     * [互斥同步](互斥同步.md)
     * [线程协作（生产-消费者模型）](线程协作（生产-消费者模型）.md)
         * [Condition](docs/book/Condition.md)
+    * [ThreadLocal 作用（线程本地存储）-数据隔离](docs/book/ThreadLocal.md)
 * [JAVA基础](JAVA基础.md)
     * [JAVA内部类](内部类.md)
 * [JVM](JVM.md)

@@ -16,9 +16,3 @@
 ## 示例代码
 
 ## 贡献者
-
-# 支持我
- <div align="left">
-    <img src="微信支付.png" width = "200" height = "250" div align=right />
-    <img src="支付宝支付.png" width = "200" height = "250" div align=right />
- </div>
