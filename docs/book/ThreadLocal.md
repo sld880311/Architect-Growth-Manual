@@ -20,6 +20,8 @@
     - [优先使用框架的支持，而不是自己创造](#优先使用框架的支持而不是自己创造)
         - [源码参考(RequestContextHolder)](#源码参考requestcontextholder)
 - [使用场景](#使用场景)
+- [其他](#其他)
+    - [如果实现数据传递](#如果实现数据传递)
 - [参考](#参考)
 
 <!-- /TOC -->
@@ -438,6 +440,11 @@ public abstract class RequestContextHolder  {
 
     }
     ```
+
+# 其他
+
+## 如果实现数据传递
+
 # 参考
 
 1. 《Java并发编程的艺术》

@@ -473,15 +473,15 @@ innodb_data_file_path=ibdata1:10G;ibdata2:10G;ibdata3:10G:autoextend
 innodb_data_file_path=ibdata1:10G;ibdata2:15360M;ibdata3:10G:autoextend 
 重启mysql。
 
-注意：
+注意：  
 1、扩容前注意磁盘空间是否足够。  
-2、restart后关注是否生成了新的ibdata。 
+2、restart后关注是否生成了新的ibdata。
 
 #### 更多说明
 如果，最后一个文件以关键字 autoextend 来描述，那么编辑 my.cnf 的过程中，必须检查最后一个文件的尺寸，并使它向下接近于 1024 * 1024 bytes (= 1 MB) 的倍数（比方说现在autoextend 的/ibdata/ibdata1为18.5M，而在旧的my.ini中为10M，则需要修改为innodb_data_file_path = /ibdata/ibdata1:19M; 且必须是19M，如果指定20M，就会报错。），并在 innodb_data_file_path 中明确指定它的尺寸。然后你可以添加另一个数据文件。记住只有 innodb_data_file_path 中的最后一个文件可以被指定为 auto-extending。
 一个例子：假设起先仅仅只有一个 auto-extending 数据文件 ibdata1 ，这个文件接近于 988 MB。下面是添加了另一个 auto-extending 数据文件后的可能示例 。
 innodb_data_home_dir = 
-innodb_data_file_path = /ibdata/ibdata1:988M;/disk2/ibdata2:50M:autoextend 
+innodb_data_file_path = /ibdata/ibdata1:988M;/disk2/ibdata2:50M:autoextend
 
 
 # 其他
