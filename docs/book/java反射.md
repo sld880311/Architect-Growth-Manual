@@ -29,6 +29,10 @@
     - [Class对象的newInstance()](#class%e5%af%b9%e8%b1%a1%e7%9a%84newinstance)
     - [调用Constructor对象的newInstance()](#%e8%b0%83%e7%94%a8constructor%e5%af%b9%e8%b1%a1%e7%9a%84newinstance)
 - [其他](#%e5%85%b6%e4%bb%96)
+  - [安全性](#%e5%ae%89%e5%85%a8%e6%80%a7)
+      - [Java的安全模型](#java%e7%9a%84%e5%ae%89%e5%85%a8%e6%a8%a1%e5%9e%8b)
+      - [Java中访问控制的实现](#java%e4%b8%ad%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e7%9a%84%e5%ae%9e%e7%8e%b0)
+      - [Java中的作用域（访问控制）](#java%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
   - [Type](#type)
   - [ClassUtils](#classutils)
   - [自定义ClassUtils](#%e8%87%aa%e5%ae%9a%e4%b9%89classutils)
@@ -221,6 +225,18 @@ Man m=(Man) c.newInstance("男人");
 ```
 
 # 其他
+## 安全性
+#### Java的安全模型
+java运行在jvm中，不与外部直接联系，java的安全模型包括：字节码验证器、类加载器、安全管理器、访问控制器等一系列的组件。java通过反射可以处理private方法和属性，说明它绕过了访问控制器。它其实是Java本身为了某种目的而留下的类似于“后门”的东西，它的原理其实是关闭访问安全检查。
+#### Java中访问控制的实现
+Field、Method和Constructor类，它们都有一个共同的父类AccessibleObject 。AccessibleObject 有一个公共方法：void setAccessible(boolean flag)。正是这个方法，让我们可以改变动态的打开或者关闭访问安全检查，从而访问到原本是private的方法或域。另外，访问安全检查是一件比较耗时的操作，关闭它反射的性能也会有较大提升。
+#### Java中的作用域（访问控制）
+
+<div align=center>
+
+![1587540118382.png](..\images\1587540118382.png)
+
+</div>
 ## Type
 Type 是 Java 编程语言中所有类型的公共高级接口。它们包括原始类型、参数化类型、数组类型、类型变量和基本类型。Type 表示的全部类型而每个Class对象表示一个具体类型的实例，如String.class仅代表String类型。由此看来Type与 Class 表示类型几乎是相同的（Class实现接口Type），只不过 Type表示的范围比Class要广得多而已。当然Type还有其他子类，如：
 1. TypeVariable：表示类型参数，可以有上界，比如：T extends Number
