@@ -11,4 +11,4 @@
 </span>
 
 [GitHub](https://github.com/sld880311/Architect-Growth-Manual/)
-[Get Started](sidebar.md)
+[Get Started](README.md)
