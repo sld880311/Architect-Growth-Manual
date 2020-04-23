@@ -1,41 +1,15 @@
-<!-- TOC -->
+# java中ThreadLocal详解
 
-- [概述](#概述)
-    - [使用说明](#使用说明)
-    - [优点](#优点)
-    - [结构解析](#结构解析)
-        - [ThreadLocalMap（线程的一个属性）](#threadlocalmap线程的一个属性)
-- [源码解析](#源码解析)
-    - [get](#get)
-    - [set](#set)
-    - [reomove](#reomove)
-    - [initialValue](#initialvalue)
-- [问题](#问题)
-    - [内存泄露](#内存泄露)
-        - [原因分析](#原因分析)
-        - [避免方式](#避免方式)
-    - [空指针问题](#空指针问题)
-    - [共享对象问题](#共享对象问题)
-    - [可以不使用ThreadLocal就不要强行使用](#可以不使用threadlocal就不要强行使用)
-    - [优先使用框架的支持，而不是自己创造](#优先使用框架的支持而不是自己创造)
-        - [源码参考(RequestContextHolder)](#源码参考requestcontextholder)
-- [使用场景](#使用场景)
-- [其他](#其他)
-    - [如果实现数据传递](#如果实现数据传递)
-- [参考](#参考)
+## 概述
 
-<!-- /TOC -->
-# 概述
 ThreadLocal，很多地方叫做线程本地变量，也有些地方叫做线程本地存储，ThreadLocal 的作用是提供线程内的局部变量，这种变量在线程的生命周期内起作用，减少同一个线程内多个函数或者组件之间一些公共变量的传递的复杂度。 
 <div align=center>
 
-
 ![ThreadLocal类图.png](..\images\1587467644468.png)
-
 
 </div>
 
-## 使用说明
+### 使用说明
 
 1. 让某个需要用到的对象实现线程之间的隔离（每个线程都有自己独立的对象）
 2. 可以在任何方法中轻松的获取到该对象
@@ -43,25 +17,23 @@ ThreadLocal，很多地方叫做线程本地变量，也有些地方叫做线程
 4. 对象初始化的时机由我们控制的时候使用initialValue 方式
 5. 如果对象生成的时机不由我们控制的时候使用 set 方式
 
-## 优点
+### 优点
 
 1. 达到线程安全的目的
 2. 不需要加锁，执行效率高
 3. 更加节省内存，节省开销
 4. 免去传参的繁琐，降低代码耦合度
 
-## 结构解析
+### 结构解析
 
 <div align=center>
 
-
 ![ThreadLocal内部结构.png](..\images\1587467884480.png)
-
 
 </div>
 
 在Thread类内部有ThreadLocal.ThreadLocalMap threadLocals = null;这个变量，它用于存储ThreadLocal，因为在同一个线程当中可以有多个ThreadLocal，并且多次调用get()所以需要在内部维护一个ThreadLocalMap用来存储多个ThreadLocal。
-### ThreadLocalMap（线程的一个属性）
+#### ThreadLocalMap（线程的一个属性）
 1. 每个线程中都有一个自己的 ThreadLocalMap 类对象，可以将线程自己的对象保持到其中，各管各的，线程可以正确的访问到自己的对象。  
 2. 将一个共用的 ThreadLocal 静态实例作为 key，将不同对象的引用保存到不同线程的
 ThreadLocalMap 中，然后在线程执行的各处通过这个静态 ThreadLocal 实例的 get()方法取得自己线程保存的那个对象，避免了将这个对象作为参数传递的麻烦。  
@@ -69,16 +41,17 @@ ThreadLocalMap 中，然后在线程执行的各处通过这个静态 ThreadLoca
    ```java
    ThreadLocal.ThreadLocalMap threadLocals = null;
    ```
-<div align=center>
 
+<div align=center>
 
 ![1587468037170.png](..\images\1587468037170.png)
 
-
 </div>
 
-# 源码解析
-## get
+## 源码解析
+
+### get
+
 ```java
 /**
  * Returns the value in the current thread's copy of this
@@ -102,7 +75,9 @@ public T get() {
     return setInitialValue();
 }
 ```
-## set
+
+### set
+
 ```java
 /**
  * Sets the current thread's copy of this thread-local variable
@@ -122,7 +97,9 @@ public void set(T value) {
         createMap(t, value);
 }
 ```
-## reomove
+
+### reomove
+
 ```java
 /**
  * Removes the current thread's value for this thread-local
@@ -141,8 +118,11 @@ public void set(T value) {
             m.remove(this);
     }
 ```
-## initialValue
+
+### initialValue
+
 该方法用于设置初始值，并且在调用get()方法时才会被触发，所以是懒加载。但是如果在get()之前进行了set()操作，这样就不会调用initialValue()。通常每个线程只能调用一次本方法，但是调用了remove()后就能再次调用.
+
 ```java
 /**
  * Returns the current thread's "initial value" for this
@@ -184,10 +164,12 @@ private T setInitialValue() {
 }
 ```
 
-# 问题
+## 问题
 
-##	内存泄露
+###	内存泄露
+
 某个对象不会再被使用，但是该对象的内存却无法被收回。
+
 ```java
 /**
  * The entries in this hash map extend WeakReference, using
@@ -207,7 +189,9 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
     }
 }
 ```
-### 原因分析
+
+#### 原因分析
+
 1. 强引用：当内存不足时触发GC，宁愿抛出OOM也不会回收强引用的内存
 2. 弱引用：触发GC后便会回收弱引用的内存
 3. 正常情况: 当Thread运行结束后，ThreadLocal中的value会被回收，因为没有任何强引用了
@@ -248,17 +232,29 @@ private void resize() {
 ```
 
 > 但是只有在调用set()、remove()、resize()这些方法时才会进行这些操作，如果没有调用这些方法并且线程不停止，那么调用链就会一直存在，所以可能会发生内存泄漏。
-### 避免方式
+
+#### 避免方式
+
 调用remove()方法，就会删除对应的Entry对象，可以避免内存泄漏，所以使用完ThreadLocal后，要调用remove()方法。
-## 空指针问题 
+
+### 空指针问题
+
 调用get方法如果返回值为基本类型，则会出现空指针异常，如果是包装类则不会出现。
-## 共享对象问题
+
+### 共享对象问题
+
 如果在每个线程中ThreadLocal.set()进去的东西本来就是多个线程共享的同一对象，比如static对象，那么多个线程调用ThreadLocal.get()获取的内容还是同一个对象，还是会发生线程安全问题。
-## 可以不使用ThreadLocal就不要强行使用
+
+### 可以不使用ThreadLocal就不要强行使用
+
 如果在任务数很少的时候，在局部方法中创建对象就可以解决问题，这样就不需要使用ThreadLocal。
-## 优先使用框架的支持，而不是自己创造
+
+### 优先使用框架的支持，而不是自己创造
+
 例如在Spring框架中，如果可以使用RequestContextHolder，那么就不需要自己维护ThreadLocal，因为自己可能会忘记调用remove()方法等，造成内存泄漏。
-### 源码参考(RequestContextHolder)
+
+#### 源码参考(RequestContextHolder)
+
 ```java
 /*
  * Copyright 2002-2016 the original author or authors.
@@ -416,10 +412,13 @@ public abstract class RequestContextHolder  {
 
 }
 ```
-# 使用场景
-1. To keep state with a thread (user-id, transaction-id, logging-id) 
+
+## 使用场景
+
+1. To keep state with a thread (user-id, transaction-id, logging-id)
 2. To cache objects which you need frequently
 3. 最常见的 ThreadLocal 使用场景为 用来解决 数据库连接、Session 管理等。
+   
     ```java
     public class TestThreadLocal {
 
@@ -441,10 +440,10 @@ public abstract class RequestContextHolder  {
     }
     ```
 
-# 其他
+## 其他
 
-## 如果实现数据传递
+### 如果实现数据传递
 
-# 参考
+## 参考
 
 1. 《Java并发编程的艺术》

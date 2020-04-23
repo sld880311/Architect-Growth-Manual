@@ -1,49 +1,23 @@
-<!-- TOC -->
+# mysql日志详解
 
-- [Binlog日志](#binlog日志)
-    - [作用](#作用)
-        - [记录信息](#记录信息)
-        - [特性](#特性)
-    - [常用配置](#常用配置)
-    - [格式](#格式)
-    - [刷盘](#刷盘)
-- [事务日志](#事务日志)
-    - [说明](#说明)
-    - [原理](#原理)
-    - [查看事务日志定义](#查看事务日志定义)
-        - [参数说明](#参数说明)
-            - [innodb_flush_log_at_trx_commit](#innodb_flush_log_at_trx_commit)
-            - [innodb_mirrored_log_groups](#innodb_mirrored_log_groups)
-        - [文件位置](#文件位置)
-- [慢查询日志](#慢查询日志)
-- [查询日志](#查询日志)
-- [错误日志](#错误日志)
-- [数据日志文件比对](#数据日志文件比对)
-    - [ib_logfile与log-bin区别](#ib_logfile与log-bin区别)
-    - [redo、undo、binlog的区别](#redoundobinlog的区别)
-    - [ibdata](#ibdata)
-        - [作用](#作用-1)
-        - [导致该文件变大的原因](#导致该文件变大的原因)
-        - [瘦身](#瘦身)
-        - [扩容](#扩容)
-            - [更多说明](#更多说明)
-- [其他](#其他)
-- [参考](#参考)
+## Binlog日志
 
-<!-- /TOC -->
-# Binlog日志
-## 作用
-### 记录信息
+### 作用
+
+#### 记录信息
+
 1. 二进制日志记录 MySQL 数据库中所有与更新相关的操作，即二进制日志记录了所有的 DDL（数据定义语言）语句和 DML（数据操纵语言）语句，但是不包括数据查询语句。常用于恢复数据库和主从复制。
 2. 二进制日志主要记录数据库的变化情况，因此可以用作主从库的同步。内容主要包括数据库所有的更新操作，use语句、insert语句、delete语句、update语句、create语句、alter语句、drop语句。用一句更简洁易懂的话概括就是：所有涉及数据变动的操作，都要记录进二进制日志中。
-### 特性
+
+#### 特性
+
 1. 只要重启了服务, binlog二进制日志就会自己滚动一个新的, 或者使用flush logs 手动滚动日志
 2. 记录的信息 主要是记录修改数据或有可能引起数据改变的MySql语句, 记录时间,操作时长,等等信息
 3. 日志格式: 基于(语句, row, mixed) 默认mixed
 4. 每一个二进制日志叫做一个Binary log event(二进制日志事件), 每一个二进制日志事件都有自己的元数据(meta data)信息, 时间,操作时长….
 5. 每个二进制日志的上限是1G
 
-## 常用配置
+### 常用配置
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
@@ -98,7 +72,7 @@
   </tr>
 </table>
 
-## 格式
+### 格式
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;border-color:#bbb;}
@@ -183,19 +157,20 @@
   </tr>
 </table>
 
-## 刷盘
+### 刷盘
 
 <div align=center>
 
-
 ![1587543929052.png](..\images\1587543929052.png)
-
 
 </div>
 
-# 事务日志
+## 事务日志
+
 MySQL会最大程度的利用缓存，从而提高数据的访问效率。那么换一句话来说，任何高性能的系统都必须利用到缓存，从各个层面来讲，缓存都发挥了巨大的作用。再上升到一个高度提炼一下：缓存和队列是实现高性能的必走之路。那么对于数据库来说这个却是个很棘手的问题，要保证数据更高效率的读取和存储，所以要利用到缓存。但是要保证数据的一致性，则必须保证所有的数据都必须准确无误的存储到数据库中，及时发生意外，也要保证数据可恢复。我们知道InnoDB是一个事务安全的存储引擎，而一致性是事务ACID中的一个重要特性。InnoDB存储引擎主要是通过InnoDB事务日志实现数据一致性的，InnoDB事务日志包括重做（redo、循环写入）日志，以及回滚（undo）日志。
-## 说明
+
+### 说明
+
 事务日志（InnoDB特有的日志）可以帮助提高事务的效率。
 事物日志是innodb专用功能,这里只考虑innod存储引擎。
 出于性能和故障恢复的考虑，MySQL 服务器不会立即执行事务，而是先将事务记录在日志里面，这样可以将随机IO转换成顺序IO，从而提高IO性能。
@@ -205,16 +180,14 @@ MySQL会最大程度的利用缓存，从而提高数据的访问效率。那么
 事务日志采用追加的方式，因此写日志的操作是磁盘上一小块区域内的顺序I/O，而不像随机I/O需要在磁盘的多个地方移动磁头，所以采用事务日志的方式相对来说要快得多。
 事务日志持久以后，内存中被修改的数据在后台可以慢慢的刷回到磁盘。目前大多数的存储引擎都是这样实现的，我们通常称之为预写式日志，修改数据需要写两次磁盘。
 如果数据的修改已经记录到事务日志并持久化，但数据本身还没有写回磁盘，此时系统崩溃，存储引擎在重启时能够自动恢复这部分修改的数据。具有的恢复方式则视存储引擎而定。
- 
 事务日志是被轮转的,一启动就分配完毕了, 并且是连续的存储空间,默认每个文件的大小为5M
 主要功能: 将随机I/O转换为顺序I/O
 ib_logfile0, ib_logfile1, 这两个文件如果坏了那么对于mysql来说是致命的, 所以建议事务log使用raid
 会把一些相关信息记录事务日志中(记录对数据文件数据修改的物理位置或叫做偏移量);
-作用:在系统崩溃重启时，作事务重做；在系统正常时，每次checkpoint时间点，会将之前写入事务应用到数据文件中。
- 
+作用:在系统崩溃重启时，作事务重做；在系统正常时，每次checkpoint时间点，会将之前写入事务应用到数据文件中。 
 有了 redo log，InnoDB 就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失，这个能力称为 crash-safe。
 
-## 原理
+### 原理
 
 <div align=center>
 
@@ -228,7 +201,7 @@ ib_logfile0, ib_logfile1, 这两个文件如果坏了那么对于mysql来说是�
 
 </div>
 
-## 查看事务日志定义
+### 查看事务日志定义
 
 ```sql
 show global variables like 'innodb_log%';
@@ -240,7 +213,7 @@ show global variables like 'innodb_log%';
 
 </div>
 
-### 参数说明
+#### 参数说明
 
 ```sql
 mysql> show global variables like 'innodb_log%';
@@ -257,7 +230,8 @@ mysql> show global variables like 'innodb_log%';
 | innodb_log_compressed_pages | ON       |
 
 # 控制事务日志ib_logfile的大小,范围5MB~4G；
-# 所有事务日志ib_logfile0+ib_logfile1+..累加大小不能超过4G，事务日志大，checkpoint会少,节省磁盘IO，
+# 所有事务日志ib_logfile0+ib_logfile1+..累加大小不能超过4G，
+# 事务日志大，checkpoint会少,节省磁盘IO，
 # 但是大的事务日志意味着数据库crash时，恢复起来较慢.
 # 引入问题:修改该参数大小，导致ib_logfile文件的大小和之前存在的文件大小不匹配
 # 解决方式：在干净关闭数据库情况下，删除ib_logfile，而后重启数据库，会自行创建该文件;
@@ -281,7 +255,7 @@ mysql> show global variables like 'innodb_log%';
 
 ```
 
-#### innodb_flush_log_at_trx_commit
+##### innodb_flush_log_at_trx_commit
 
 在事务提交时innodb是否同步日志从缓冲到文件中（1表示事务一提交就同步不提交每隔一秒同步一次，性能会很差造成大量的磁盘I/O；定义为2表示只有在事务提交时才会同步但是可能会丢失整个事务 ）
 innodb_flush_log_at_trx_commit：控制事务日志何时写盘和刷盘，安全递增：0,2,1；事务缓存区:log_buffer;
@@ -294,11 +268,11 @@ innodb_flush_log_at_trx_commit：控制事务日志何时写盘和刷盘，安�
 - 2:数据安全性有要求，可以丢失一点事务日志，复制延迟也可以接受，OS损坏时才可能丢失数据;
 - 1:数据安全性要求非常高，且磁盘IO能力足够支持业务，如充值消费，敏感业务;
 
-#### innodb_mirrored_log_groups
+##### innodb_mirrored_log_groups
 
 表示对日志组做镜像
 
-### 文件位置
+#### 文件位置
 
 <div align=center>
 
@@ -306,15 +280,15 @@ innodb_flush_log_at_trx_commit：控制事务日志何时写盘和刷盘，安�
 
 </div>
 
-# 慢查询日志
+## 慢查询日志
 
-# 查询日志
+## 查询日志
 
-# 错误日志
+## 错误日志
 
-# 数据日志文件比对
+## 数据日志文件比对
 
-## ib_logfile与log-bin区别
+### ib_logfile与log-bin区别
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
@@ -341,7 +315,7 @@ innodb_flush_log_at_trx_commit：控制事务日志何时写盘和刷盘，安�
   </tr>
 </table>
 
-## redo、undo、binlog的区别
+### redo、undo、binlog的区别
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
@@ -410,13 +384,13 @@ innodb_flush_log_at_trx_commit：控制事务日志何时写盘和刷盘，安�
   </tr>
 </table>
 
-1. 	redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
-2. 	redo log 是物理日志，记录的是“在某个数据页上做了什么修改”；binlog 是逻辑日志，记录的是这个语句的原始逻辑，比如“给 ID=2 这一行的 c 字段加 1 ”。
-3. 	redo log 是循环写的，空间固定会用完；binlog 是可以追加写入的。“追加写”是指 binlog 文件写到一定大小后会切换到下一个，并不会覆盖以前的日志（但是可以设置清理策略）。
+1. redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
+2. redo log 是物理日志，记录的是“在某个数据页上做了什么修改”；binlog 是逻辑日志，记录的是这个语句的原始逻辑，比如“给 ID=2 这一行的 c 字段加 1 ”。
+3. redo log 是循环写的，空间固定会用完；binlog 是可以追加写入的。“追加写”是指 binlog 文件写到一定大小后会切换到下一个，并不会覆盖以前的日志（但是可以设置清理策略）。
 
-## ibdata
+### ibdata
 
-### 作用
+#### 作用
 
 ibdata1是一个用来构建innodb系统表空间的文件，这个文件包含了innodb表的
 元数据（数据字典）、
@@ -433,11 +407,11 @@ ibdata1是一个用来构建innodb系统表空间的文件，这个文件包含�
 
 </div>
 
-### 导致该文件变大的原因
+#### 导致该文件变大的原因
 
 显然ibdata文件存的是数据库的表数据，如缓存，索引等。所以随着数据库越来越大，表也会越大，这个无法避免的。
 
-### 瘦身
+#### 瘦身
 
 1. 按照类型分类
    - 数据文件与日志信息分文件保存，对于日志文件可以定期执行清理。
@@ -458,32 +432,42 @@ service mysqld restart
 mysql -uroot -p < /var/lib/mysql/backall.sql
 ```
 
-### 扩容
+#### 扩容
 
 为了添加一个数据文件到表空间中，首先要关闭 MySQL 数据库，编辑 my.cnf 文件，确认innodb ibdata文件的实际情况和my.cnf的配置是否一致，这里有两种情况：
-1. my.cnf的配置
-innodb_data_file_path=ibdata1:10G;ibdata2:10G:autoextend 
-如果当前数据库正在使用ibdata1，或者使用ibdata2，但ibdata2没有超过10G，则对my.cnf配置直接改成：
-innodb_data_file_path=ibdata1:10G;ibdata2:10G;ibdata3:10G:autoextend 
+
+1. my.cnf的配置  
+`innodb_data_file_path=ibdata1:10G;ibdata2:10G:autoextend`  
+如果当前数据库正在使用ibdata1，或者使用ibdata2，但ibdata2没有超过10G，则对my.cnf配置直接改成：  
+`innodb_data_file_path=ibdata1:10G;ibdata2:10G;ibdata3:10G:autoextend`
 2. 如果设置了最后一个ibdata自动扩展时，有可能最后一个ibdata的占用空间大于my.cnf的配置空间。例如：
- mysql@test:/data1/mysqldata/innodb/data> ls -lh 
--rw-rw---- 1 mysql mysql 10737418240 2010-01-26 16:34 ibdata1 
--rw-rw---- 1 mysql mysql 16106127360 2010-01-26 16:34 ibdata2 
+
+```sql
+ mysql@test:/data1/mysqldata/innodb/data> ls -lh
+-rw-rw---- 1 mysql mysql 10737418240 2010-01-26 16:34 ibdata1
+-rw-rw---- 1 mysql mysql 16106127360 2010-01-26 16:34 ibdata2
+```
+
 这时，需要精确的计算ibdata2的大小 15360M，修改：
-innodb_data_file_path=ibdata1:10G;ibdata2:15360M;ibdata3:10G:autoextend 
+
+`innodb_data_file_path=ibdata1:10G;ibdata2:15360M;ibdata3:10G:autoextend`
+
 重启mysql。
 
 注意：  
 1、扩容前注意磁盘空间是否足够。  
 2、restart后关注是否生成了新的ibdata。
 
-#### 更多说明
-如果，最后一个文件以关键字 autoextend 来描述，那么编辑 my.cnf 的过程中，必须检查最后一个文件的尺寸，并使它向下接近于 1024 * 1024 bytes (= 1 MB) 的倍数（比方说现在autoextend 的/ibdata/ibdata1为18.5M，而在旧的my.ini中为10M，则需要修改为innodb_data_file_path = /ibdata/ibdata1:19M; 且必须是19M，如果指定20M，就会报错。），并在 innodb_data_file_path 中明确指定它的尺寸。然后你可以添加另一个数据文件。记住只有 innodb_data_file_path 中的最后一个文件可以被指定为 auto-extending。
+##### 更多说明
+
+如果，最后一个文件以关键字 autoextend 来描述，那么编辑 my.cnf 的过程中，必须检查最后一个文件的尺寸，并使它向下接近于 1024 * 1024 bytes (= 1 MB) 的倍数（比方说现在autoextend 的/ibdata/ibdata1为18.5M，而在旧的my.ini中为10M，则需要修改为`innodb_data_file_path = /ibdata/ibdata1:19M;` 且必须是19M，如果指定20M，就会报错。），并在 innodb_data_file_path 中明确指定它的尺寸。然后你可以添加另一个数据文件。记住只有 innodb_data_file_path 中的最后一个文件可以被指定为 auto-extending。
 一个例子：假设起先仅仅只有一个 auto-extending 数据文件 ibdata1 ，这个文件接近于 988 MB。下面是添加了另一个 auto-extending 数据文件后的可能示例 。
-innodb_data_home_dir = 
+
+```sql
+innodb_data_home_dir =
 innodb_data_file_path = /ibdata/ibdata1:988M;/disk2/ibdata2:50M:autoextend
+```
 
+## 其他
 
-# 其他
-
-# 参考
+## 参考

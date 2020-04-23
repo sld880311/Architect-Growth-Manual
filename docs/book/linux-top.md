@@ -1,15 +1,6 @@
-<!-- TOC -->
+# Linux中top命令的使用
 
-- [语法](#语法)
-- [常用语法](#常用语法)
-- [显示列](#显示列)
-- [作用](#作用)
-- [VIRT RES SHR的准确含义](#virt-res-shr的准确含义)
-- [参考](#参考)
-
-<!-- /TOC -->
-
-# 语法
+## 语法
 
 ```bash
 [root@incloudos logs]# top -h
@@ -31,7 +22,9 @@ s – 改变画面更新周期
 也就是Mem前面，会有Kib、MiB、GiB等单位变化，
 但是数字后面不会直接写明单位。
 ```
-# 常用语法
+
+## 常用语法
+
 * top查看进程使用资源情况
 * top -c显示详细的进程信息
 * top -bn1静态显示所有进程
@@ -50,8 +43,10 @@ KiB Swap:        0 total,        0 free,        0 used.  1461432 avail Mem
     4 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 kworker/0:0H
 ```
 
-# 显示列
+## 显示列
+
 默认情况下仅显示比较重要的 PID、USER、PR、NI、VIRT、RES、SHR、S、%CPU、%MEM、TIME+、COMMAND 列。可以通过下面的快捷键来更改显示内容。通过 f 键可以选择显示的内容。按 f 键之后会显示列的列表，按 a-z 即可显示或隐藏对应的列，最后按回车键确定。按 o 键可以改变列的显示顺序。按小写的 a-z 可以将相应的列向右移动，而大写的 A-Z 可以将相应的列向左移动。最后按回车键确定。按大写的 F 或 O 键，然后按 a-z 可以将进程按照相应的列进行排序。而大写的 R 键可以将当前的排序倒转。
+
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
 .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
@@ -215,11 +210,13 @@ SHR：shared memory 共享内存</br>
   </tr>
 </table>
 
-# 作用
-top命令作为Linux下最常用的性能分析工具之一，可以监控、收集进程的CPU、IO、内存使用情况。比如我们可以通过top命令获得一个进程使用了多少虚拟内存（VIRT）、物理内存（RES）、共享内存（SHR）。
-# VIRT RES SHR的准确含义
+## 作用
 
-1. top命令通过解析/proc/<pid>/statm统计VIRT和RES和SHR字段值。
+top命令作为Linux下最常用的性能分析工具之一，可以监控、收集进程的CPU、IO、内存使用情况。比如我们可以通过top命令获得一个进程使用了多少虚拟内存（VIRT）、物理内存（RES）、共享内存（SHR）。
+
+## VIRT RES SHR的准确含义
+
+1. top命令通过解析/proc/\<pid>/statm统计VIRT和RES和SHR字段值。
 2. VIRT是申请的虚拟内存总量。
 3. RES是进程使用的物理内存总和。
 4. SHR是RES中”映射至文件”的物理内存总和。包括：
@@ -228,10 +225,11 @@ top命令作为Linux下最常用的性能分析工具之一，可以监控、收
    - 通过mmap做的文件映射。
    - 通过mmap做的匿名映射，但指明了MAP_SHARED属性。
    - 通过shmget申请的共享内存。
-5. /proc/<pid>/smaps内Shared_*统计的是RES中映射数量>=2的物理内存。
-6. /proc/<pid>/smaps内Private_*统计的是RES中映射数量=1的物理内存。
+5. /proc/\<pid>/smaps内Shared_*统计的是RES中映射数量>=2的物理内存。
+6. /proc/\<pid>/smaps内Private_*统计的是RES中映射数量=1的物理内存。
 
-# 参考            
+## 参考
+
 - [剖析top命令显示的VIRT RES SHR值](http://blog.sina.com.cn/s/blog_4e41487001016eio.html)
 - [top命令查看线程信息和jstack使用介绍](https://www.cnblogs.com/shengulong/p/8513652.html)
 - [10.1-10.5 w查看系统负载 vmstat , top, sar, nload](http://blog.51cto.com/13578154/2088684)

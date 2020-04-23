@@ -1,30 +1,10 @@
-<!-- TOC -->
+# Java中Condition详解
 
-- [说明](#%e8%af%b4%e6%98%8e)
-- [Condition与Object的比对](#condition%e4%b8%8eobject%e7%9a%84%e6%af%94%e5%af%b9)
-- [简单使用](#%e7%ae%80%e5%8d%95%e4%bd%bf%e7%94%a8)
-- [等待方法](#%e7%ad%89%e5%be%85%e6%96%b9%e6%b3%95)
-  - [await](#await)
-  - [awaitUninterruptibly](#awaituninterruptibly)
-  - [awaitNanos](#awaitnanos)
-  - [awaitUntil](#awaituntil)
-- [唤醒方法](#%e5%94%a4%e9%86%92%e6%96%b9%e6%b3%95)
-  - [signal](#signal)
-  - [signalAll](#signalall)
-- [原理](#%e5%8e%9f%e7%90%86)
-  - [类图](#%e7%b1%bb%e5%9b%be)
-  - [队列实现原理](#%e9%98%9f%e5%88%97%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86)
-  - [await原理](#await%e5%8e%9f%e7%90%86)
-  - [signal/signalall原理](#signalsignalall%e5%8e%9f%e7%90%86)
-  - [整体流程](#%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b)
-- [参考](#%e5%8f%82%e8%80%83)
-
-<!-- /TOC -->
-# 说明
+## 说明
 
 &emsp;&emsp;Condition在jdk1.5中开始出现，主要是用来替代传统Object对象中的wait和notify方法，Object的wait和notify/notify是与<font color="red">对象监视器</font>配合完成线程间的等待/通知机制，而Condition与Lock配合完成等待通知机制，前者是java底层级别的（配合synchronized），后者是语言级别的（配合Lock），具有更高的可控制性和扩展性相比来说更加安全和  高效。
 
-# Condition与Object的比对
+## Condition与Object的比对
 
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
@@ -91,8 +71,10 @@
   </tr>
 </table>
 
-# 简单使用
+## 简单使用
+
 一般使用的时候定义为成员变量，condition可以根据实际情况定义为多个，注意在使用过程中锁的释放、中断响应以及等待通知处理。
+
 ```java
 package com.sunld.thread;
 
@@ -130,8 +112,10 @@ public class ConditionExample1 {
 	}
 }
 ```
-# 等待方法
-## await
+
+## 等待方法
+
+### await
 
 ```java
 /**
@@ -146,13 +130,15 @@ void await() throws InterruptedException;
  */
 boolean await(long time, TimeUnit unit) throws InterruptedException;
 ```
-## awaitUninterruptibly
+
+### awaitUninterruptibly
 
 ```java
 // 同await，但是不响应中断
 void awaitUninterruptibly();
 ```
-## awaitNanos
+
+### awaitNanos
 
 ```java
 /**
@@ -160,7 +146,8 @@ void awaitUninterruptibly();
  */
 long awaitNanos(long nanosTimeout) throws InterruptedException;
 ```
-## awaitUntil
+
+### awaitUntil
 
 ```java
 /**
@@ -168,8 +155,10 @@ long awaitNanos(long nanosTimeout) throws InterruptedException;
  */
 boolean awaitUntil(Date deadline) throws InterruptedException;
 ```
-# 唤醒方法
-## signal
+
+## 唤醒方法
+
+### signal
 
 ```java
 /**
@@ -178,7 +167,8 @@ boolean awaitUntil(Date deadline) throws InterruptedException;
  */
 void signal();
 ```
-## signalAll
+
+### signalAll
 
 ```java
 /**
@@ -186,15 +176,19 @@ void signal();
  */
 void signalAll();
 ```
-# 原理
-## 类图
+
+## 原理
+
+### 类图
 
 <div align=center>
 
 ![condition类图](..\images\1587461246450.png)
 
 </div>
-## 队列实现原理
+
+### 队列实现原理
+
 Condition使用Lock的newCondition方法获取（Condition newCondition();）具体实现过程如下：
 
 ```java
@@ -206,6 +200,7 @@ final ConditionObject newCondition() {
     return new ConditionObject();
 }
 ```
+
 返回了AbstractQueuedSynchronizer中的内部类ConditionObject，Condition内部与lock（AQS思想）一样维护了一个等待队列（每个condition中都会维护一个队列）。所有调用condition.await方法的线程会加入到等待队列中，并且线程状态转换为等待状态。事实上，节点的定义复用了同步器中节点的定义，也就是说，同步队列和等待队列中节点类型都是同步器的静态内部类<font color="red">AbstractQueuedSynchronizer.Node</font>
 
 ```java
@@ -214,6 +209,7 @@ private transient Node firstWaiter;
 /** Last node of condition queue. */
 private transient Node lastWaiter;
 ```
+
 <div align=center>
 
 ![1587458843343.png](..\images\1587458843343.png)
@@ -222,17 +218,18 @@ private transient Node lastWaiter;
 
 1. 调用condition.await方法后线程依次尾插入到等待队列中，如图队列中的线程引用依次为Thread-0,Thread-1,Thread-2....Thread-8；
 2. 等待队列是一个单向队列。
-3.  多次调用lock.newCondition()方法创建多个condition对象，也就是一个lock可以持有多个等待队列。而在之前利用Object的方式实际上是指在对象Object对象监视器上只能拥有一个同步队列和一个等待队列，而并发包中的Lock拥有一个同步队列和多个等待队列。
+3. 多次调用lock.newCondition()方法创建多个condition对象，也就是一个lock可以持有多个等待队列。而在之前利用Object的方式实际上是指在对象Object对象监视器上只能拥有一个同步队列和一个等待队列，而并发包中的Lock拥有一个同步队列和多个等待队列。
 
 <div align=center>
 
 ![1587458891983.png](..\images\1587458891983.png)
 
-
 </div>
 
-## await原理
+### await原理
+
 当前线程进入等待状态直到被唤醒或中断，则当前线程将进入运行状态且从await方法中返回运行情况，包括：
+
 1. 其他线程调用该condition的signal或signalall方法，而当前线程被选中唤醒
 2. 其他线程（调用interrupt）中断当前线程
 3. 如果当前等待线程从await方法返回，则表明该线程已经获取了condition对象所对应的锁
@@ -331,17 +328,17 @@ final int fullyRelease(Node node) {
     }
 }
 ```
+
 <div align=center>
 
-
 ![当前线程加入等待队列](..\images\1587459856757.png)
-
 
 </div>
 
 > 调用Condition的await()方法（或者以await开头的方法），会使当前线程进入等待队列并释放锁，同时线程状态变为等待状态。当从await()方法返回时，当前线程一定获取了Condition相关联的锁。调用condition.await方法的线程必须是已经获得了lock，也就是当前线程是同步队列中的头结点。调用该方法后会使得当前线程所封装的Node尾插入到等待队列中
 
-## signal/signalall原理
+### signal/signalall原理
+
 唤醒一个等待在condition上的线程，该线程从等待方法返回前必须获得与该condition相关的锁。
 调用condition的signal或者signalAll方法可以将等待队列中等待时间最长的节点移动到同步队列中。
 
@@ -383,9 +380,9 @@ private void doSignal(Node first) {
              (first = firstWaiter) != null);
 }
 ```
-             
 
 调用condition的signal的前提条件是当前线程已经获取了lock，该方法会使得等待队列中的头节点即等待时间最长的那个节点移入到同步队列，而<font color="red">移入到同步队列后才有机会使得等待线程被唤醒</font>，即从await方法中的LockSupport.park(this)方法中返回，从而才有机会使得调用await方法的线程成功退出。
+
 <div align=center>
 
 ![1587460222343.png](..\images\1587460222343.png)
@@ -454,6 +451,7 @@ private Node enq(final Node node) {
 ```
 
 Condition的signalAll()方法，相当于对等待队列中的每个节点均执行一次signal()方法，效果就是将等待队列中所有节点全部移动到同步队列中，并唤醒每个节点的线程。代码如下：
+
 ```java
 
 /**
@@ -486,14 +484,16 @@ private void doSignalAll(Node first) {
 }
 ```
 
-## 整体流程
+### 整体流程
+
 <div align=center>
 
 ![1587461964158.png](..\images\1587461964158.png)
 
 </div>
 
-# 参考
+## 参考
+
 1. [详解Condition的await和signal等待/通知机制](https://www.jianshu.com/p/28387056eeb4)
 2. 《Java并发编程的艺术》
 3. [java condition使用及分析](https://blog.csdn.net/bohu83/article/details/51098106)
