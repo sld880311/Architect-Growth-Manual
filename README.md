@@ -2,6 +2,8 @@
 
 ## 简介
 
+本书中所有针对jdk的讲解都是基于jdk1.8输出。
+
 ## 传送门
 
 - 目录阅读：[进入](https://github.com/sld880311/Architect-Growth-Manual/blob/master/SUMMARY.md)
