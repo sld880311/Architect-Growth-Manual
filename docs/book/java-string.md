@@ -789,3 +789,4 @@ public int codePointCount(int beginIndex, int endIndex) {
 
 1. [Java常用类（二）String类详解](https://www.cnblogs.com/zhangyinhua/p/7689974.html#_lab2_0_1)
 2. [String源码分析（基于JDK1.8)](https://blog.csdn.net/qq_34691713/article/details/92572843)
+3. [刨根究底字符编码之十四——UTF-16究竟是怎么编码的](https://www.cnblogs.com/benbenalin/p/7152570.html)

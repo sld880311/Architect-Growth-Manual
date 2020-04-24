@@ -2,10 +2,33 @@
 
 ## 概述
 
-ThreadLocal，很多地方叫做线程本地变量，也有些地方叫做线程本地存储，ThreadLocal 的作用是提供线程内的局部变量，这种变量在线程的生命周期内起作用，减少同一个线程内多个函数或者组件之间一些公共变量的传递的复杂度。 
+### API描述
+
+```java
+ * This class provides thread-local variables.  These variables differ from
+ * their normal counterparts in that each thread that accesses one (via its
+ * {@code get} or {@code set} method) has its own, independently initialized
+ * copy of the variable.  {@code ThreadLocal} instances are typically private
+ * static fields in classes that wish to associate state with a thread (e.g.,
+ * a user ID or Transaction ID).
+```
+
+`ThreadLocal`提供一种线程本地变量。这种变量是一种副本的概念，在多线程环境下访问（get、set）能够保证各个线程间的变量互相隔离。`ThreadLocal`通常定义为了`private static`，用来关联线程和线程上下文（比如userId或事物ID）。`ThreadLocal` 的作用是提供线程内的局部变量，这种变量在线程的生命周期内起作用，减少同一个线程内多个函数或者组件之间一些公共变量的传递的复杂度。
+
 <div align=center>
 
-![ThreadLocal类图.png](..\images\1587467644468.png)
+```plantuml
+@startuml
+class ThreadLocal<T> {
+- private final int threadLocalHashCode;
+- private static AtomicInteger nextHashCode;
+# protected T initialValue()
++ public T get()
++ public void set(T value)
++ public void remove()
+}
+@enduml
+```
 
 </div>
 
@@ -24,81 +47,148 @@ ThreadLocal，很多地方叫做线程本地变量，也有些地方叫做线程
 3. 更加节省内存，节省开销
 4. 免去传参的繁琐，降低代码耦合度
 
+### ThreadLocal与锁的区别
+
+1. lock 的资源是多个线程共享的，所以访问的时候需要加锁。
+2. ThreadLocal 是每个线程都有一个副本，是不需要加锁的。
+3. lock 是通过时间换空间的做法。
+4. ThreadLocal 是典型的通过空间换时间的做法。
+
 ### 结构解析
+
+#### JDK早期设计
 
 <div align=center>
 
+![1587690655937.png](..\images\1587690655937.png)
+
+</div>
+
+在早期的设计中每个 `ThreadLocal` 创建一个 `ThreadLocalMap`，然后用**线程**作为 Map 的 key，要存储的局部变量作为 Map 的 value，这样达到线程隔离的目的。**由于该线程绑定的变量不能被自动的回收，因为变量存储在 ThreadLocal 里，必须显式的去回收。(容易出现内存泄露)**
+
+#### JDK1.8设计
+
+在`Thread`类中维护了`ThreadLocalMap`；这个变量用于存储`ThreadLocal`，因为在同一个线程当中可以有多个`ThreadLocal`，并且多次调用`get()`所以需要在内部维护一个`ThreadLocalMap`用来存储多个`ThreadLocal`。`Thread`中的代码如下：
+
+```java
+/* ThreadLocal values pertaining to this thread. This map is maintained
+* by the ThreadLocal class.
+*/
+ThreadLocal.ThreadLocalMap threadLocals = null;
+
+/*
+* InheritableThreadLocal values pertaining to this thread. This map is
+* maintained by the InheritableThreadLocal class.
+* 父线程难道子线程共享的数据
+*/
+ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
+```
+
+如下图所示：
+<div align=center>
+
+![1587690972564.png](..\images\1587690972564.png)
 ![ThreadLocal内部结构.png](..\images\1587467884480.png)
 
 </div>
 
-在Thread类内部有ThreadLocal.ThreadLocalMap threadLocals = null;这个变量，它用于存储ThreadLocal，因为在同一个线程当中可以有多个ThreadLocal，并且多次调用get()所以需要在内部维护一个ThreadLocalMap用来存储多个ThreadLocal。
-#### ThreadLocalMap（线程的一个属性）
-1. 每个线程中都有一个自己的 ThreadLocalMap 类对象，可以将线程自己的对象保持到其中，各管各的，线程可以正确的访问到自己的对象。  
-2. 将一个共用的 ThreadLocal 静态实例作为 key，将不同对象的引用保存到不同线程的
-ThreadLocalMap 中，然后在线程执行的各处通过这个静态 ThreadLocal 实例的 get()方法取得自己线程保存的那个对象，避免了将这个对象作为参数传递的麻烦。  
-3. ThreadLocalMap 其实就是线程里面的一个属性，它在 Thread 类中定义
-   ```java
-   ThreadLocal.ThreadLocalMap threadLocals = null;
-   ```
+**通过代码分析得出以下结论：**
 
+1. ① 每个 `Thread` 内部都有一个 `ThreadLocalMap` `ThreadLocal.ThreadLocalMap threadLocals = null;`达到线程隔离
+2. ② `ThreadLocalMap` 里面存储 `ThreadLocal` 对象（key） 和 线程的变量副本（value）`t.threadLocals = new ThreadLocalMap(this, firstValue);`；使用静态并`ThreadLocal`作为key，将不同对象的引用保存到不同线程的`ThreadLocalMap`中。
+3. ③ `Thread` 内部的 `ThreadLocalMap` 是由 `ThreadLocal` 维护的，由 `ThreadLocal` 负责向 ThreadLocalMap 设置和获取变量值
+4. ④ 对于不同的线程，每次获取副本值时，别的线程并不能获取当前线程的副本值，形成副本的隔离，互不干扰
+
+如下图所示：
 <div align=center>
 
 ![1587468037170.png](..\images\1587468037170.png)
 
 </div>
 
+**好处：**
+
+1. ① 每个 ThreadLocalMap 存储的 Entry 数量变少
+2. ② 当 Thread 销毁时，ThreadLocalMap 也随之销毁，减少内存的使用
+
 ## 源码解析
 
 ### get
 
+获取当前线程中绑定的局部两类。
+
 ```java
 /**
- * Returns the value in the current thread's copy of this
- * thread-local variable.  If the variable has no value for the
- * current thread, it is first initialized to the value returned
- * by an invocation of the {@link #initialValue} method.
- *
- * @return the current thread's value of this thread-local
- */
+	* Returns the value in the current thread's copy of this
+	* thread-local variable.  If the variable has no value for the
+	* current thread, it is first initialized to the value returned
+	* by an invocation of the {@link #initialValue} method.
+	*
+	* @return the current thread's value of this thread-local
+	*/
 public T get() {
-    Thread t = Thread.currentThread();
-    ThreadLocalMap map = getMap(t);
-    if (map != null) {
-        ThreadLocalMap.Entry e = map.getEntry(this);
-        if (e != null) {
-            @SuppressWarnings("unchecked")
-            T result = (T)e.value;
-            return result;
-        }
-    }
-    return setInitialValue();
+	// 1.获取当前线程中的ThreadLocalMap
+	Thread t = Thread.currentThread();
+	ThreadLocalMap map = getMap(t);
+	/**
+	* 2.1 如果不为空：使用当前ThreadLocal获取map中的Entry，如果不为空则获取值
+	* 2.2 map 为空 或者 e 为空，通过 initialValue ，也就是 NULL，
+	*     然后用 TL 的引用和 value 作为 firstKey 和 firstValue 创建新的 map
+	*/
+	if (map != null) {
+		ThreadLocalMap.Entry e = map.getEntry(this);
+		if (e != null) {
+			@SuppressWarnings("unchecked")
+			T result = (T)e.value;
+			return result;
+		}
+	}
+	return setInitialValue();
 }
 ```
 
 ### set
 
+使用线程本地变量的方式存储数据，绑定到当前线程中。
+
 ```java
 /**
- * Sets the current thread's copy of this thread-local variable
- * to the specified value.  Most subclasses will have no need to
- * override this method, relying solely on the {@link #initialValue}
- * method to set the values of thread-locals.
- *
- * @param value the value to be stored in the current thread's copy of
- *        this thread-local.
- */
+* Sets the current thread's copy of this thread-local variable
+* to the specified value.  Most subclasses will have no need to
+* override this method, relying solely on the {@link #initialValue}
+* method to set the values of thread-locals.
+*
+* @param value the value to be stored in the current thread's copy of
+*        this thread-local.
+*/
 public void set(T value) {
-    Thread t = Thread.currentThread();
-    ThreadLocalMap map = getMap(t);
-    if (map != null)
-        map.set(this, value);
-    else
-        createMap(t, value);
+	Thread t = Thread.currentThread(); // 1.获取当前线程
+	ThreadLocalMap map = getMap(t); // 2.获取当前线程中的ThreadLocalMap
+	/**
+	* 3.1 如果map不为空则设置数据，key为ThreadLocal
+	* 3.2 如果为空，则给该线程创建 map ，并设置初始值
+	*/
+	if (map != null)
+		map.set(this, value);
+	else
+		createMap(t, value);
+}
+
+/**
+* Create the map associated with a ThreadLocal. Overridden in
+* InheritableThreadLocal.
+*
+* @param t the current thread
+* @param firstValue value for the initial entry of the map
+*/
+void createMap(Thread t, T firstValue) {
+	t.threadLocals = new ThreadLocalMap(this, firstValue);
 }
 ```
 
 ### reomove
+
+清空数据，防止内存泄露
 
 ```java
 /**
@@ -164,11 +254,172 @@ private T setInitialValue() {
 }
 ```
 
+### ThreadLocalMap
+
+#### ThreadLocalMap类图
+
+<div align=center>
+
+```plantuml
+Title "ThreadLocalMap类图"
+
+abstract class Reference
+class WeakReference
+class Entry
+class ThreadLocalMap
+
+Entry *-- ThreadLocalMap
+WeakReference <|-- Entry
+Reference <|-- WeakReference
+
+class ThreadLocalMap{
+-- ThreadLocal的静态内部类
+- private void set(ThreadLocal<?> key, Object value)
+- private void remove(ThreadLocal<?> key)
+- private Entry getEntry(ThreadLocal<?> key)
+
+- private Entry[] table
+- private int size
+- private int threshold
+}
+
+class Entry {
+-- ThreadLocalMap的静态内部类
+~ Entry(ThreadLocal<?> k, Object v)
+~ Object value;
+}
+
+@enduml
+```
+
+</div>
+
+#### ThreadLocalMap源码
+
+```java
+/**
+* The initial capacity -- MUST be a power of two.
+*/
+private static final int INITIAL_CAPACITY = 16;
+
+/**
+* The table, resized as necessary.
+* table.length MUST always be a power of two.
+*/
+private Entry[] table;
+
+/**
+* The number of entries in the table.
+*/
+private int size = 0;
+
+/**
+* The next size value at which to resize.
+*/
+private int threshold; // Default to 0
+```
+
+通过源码分析ThreadLocalMap与HashMap的结构类似。
+
+#### ThreadLocalMap保存数据
+
+```java
+/**
+* Set the value associated with key.
+*
+* @param key the thread local object
+* @param value the value to be set
+*/
+private void set(ThreadLocal<?> key, Object value) {
+
+	// We don't use a fast path as with get() because it is at
+	// least as common to use set() to create new entries as
+	// it is to replace existing ones, in which case, a fast
+	// path would fail more often than not.
+
+	Entry[] tab = table;
+	int len = tab.length;
+	// 计算hash索引位置
+	int i = key.threadLocalHashCode & (len-1);
+	// 使用线性探测法查找元素（顺序查找数据，找到则结束，并且在查找数据时必须比对key是否相等）
+	for (Entry e = tab[i];
+			e != null;
+			e = tab[i = nextIndex(i, len)]) {
+		ThreadLocal<?> k = e.get();
+
+		if (k == key) {// 如果key存在则直接覆盖
+			e.value = value;
+			return;
+		}
+
+		if (k == null) {
+			// 如果key为空，但是value不为空则说明ThreadLocal作为key已经被回收，需要进行数据交换
+			replaceStaleEntry(key, value, i);
+			return;
+		}
+	}
+
+	tab[i] = new Entry(key, value);
+	int sz = ++size;
+	if (!cleanSomeSlots(i, sz) && sz >= threshold)
+		rehash();
+}
+```
+
+**通过源码分析如下：**
+
+1. 每个`ThreadLocal`对象都有一个hash值 `threadLocalHashCode` ，每初始化一个`ThreadLocal`对象，hash值就增加一个固定的大小 **0x61c88647** 。
+   
+   ```java
+    /**
+     * ThreadLocals rely on per-thread linear-probe hash maps attached
+     * to each thread (Thread.threadLocals and
+     * inheritableThreadLocals).  The ThreadLocal objects act as keys,
+     * searched via threadLocalHashCode.  This is a custom hash code
+     * (useful only within ThreadLocalMaps) that eliminates collisions
+     * in the common case where consecutively constructed ThreadLocals
+     * are used by the same threads, while remaining well-behaved in
+     * less common cases.
+     */
+    private final int threadLocalHashCode = nextHashCode();
+
+	/**
+     * Returns the next hash code.
+     */
+    private static int nextHashCode() {
+        return nextHashCode.getAndAdd(HASH_INCREMENT);
+    }
+   ```
+
+2. 在set数据时首先根据`threadLocalHashCode`对key进行hash，如果当前位置没数据数据则初始化一个Entry放到该位置上。
+3. 如果有数据则继续判断当前位置的key是否与当前设置的key相同，如果是则替换当前Entry中的value
+4. 如果key不同则for循环继续查找。
+
+#### ThreadLocalMap与HashMap的区别
+
+主要体现在hash冲突解决上。
+
+1. HashMap 的数据结构是数组+链表
+2. ThreadLocalMap的数据结构仅仅是数组
+3. HashMap 是通过链地址法解决hash 冲突的问题
+4. ThreadLocalMap 是通过开放地址法来解决hash 冲突的问题
+5. HashMap 里面的Entry 内部类的引用都是强引用
+6. ThreadLocalMap里面的Entry 内部类中的**key 是弱引用，value 是强引用**
+
 ## 问题
 
-###	内存泄露
+### 内存泄露
 
 某个对象不会再被使用，但是该对象的内存却无法被收回。
+
+#### Java引用的说明（后续会在JVM垃圾回收中详细说明）
+
+Java中存在四种引用类型：**强、弱、软、虚**  
+
+1. 强引用：最常见的是使用new创建的对象，只要存在对象引用，GC就不会回收
+2. 软引用：`SoftReference`实现，当系统内存不足时才会被回收
+3. 弱引用：`WeakReference`实现，GC 一旦发现弱引用的对象，不管当前内存空间足够与否，都会回收它的内存
+4. 虚引用：`PhantomReference`实现，必须和引用队列联合使用，主要用于跟踪对象被垃圾回收的状态
 
 ```java
 /**
@@ -192,10 +443,8 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 #### 原因分析
 
-1. 强引用：当内存不足时触发GC，宁愿抛出OOM也不会回收强引用的内存
-2. 弱引用：触发GC后便会回收弱引用的内存
-3. 正常情况: 当Thread运行结束后，ThreadLocal中的value会被回收，因为没有任何强引用了
-4. 非正常情况
+1. 正常情况: 当Thread运行结束后，ThreadLocal中的value会被回收，因为没有任何强引用了
+2. 非正常情况
 当Thread一直在运行始终不结束，强引用就不会被回收，存在以下调用链 Thread-->ThreadLocalMap-->Entry(key为null)-->value因为调用链中的 value 和 Thread 存在强引用，所以value无法被回收，就有可能出现OOM。JDK的设计已经考虑到了这个问题，所以在set()、remove()、resize()方法中会扫描到key为null的Entry，并且把对应的value设置为null，这样value对象就可以被回收。
 
 ```java
@@ -232,6 +481,16 @@ private void resize() {
 ```
 
 > 但是只有在调用set()、remove()、resize()这些方法时才会进行这些操作，如果没有调用这些方法并且线程不停止，那么调用链就会一直存在，所以可能会发生内存泄漏。
+
+#### ThreadLocalMap.Entry被定义为弱引用的原因
+
+<div align=center>
+
+![1587696845088.png](..\images\1587696845088.png)
+
+</div>
+
+`ThreadLocal`作为Map中的key，被定义为弱引用，当把`ThreadLocal`实例设置为`null`时，gc就可以顺利回收`ThreadLocal`。但是如果value正常被当前线程使用，只有在当前线程结束之后才能被回收，这也是JDK1.8之后的升级，降低内存泄露的概率。
 
 #### 避免方式
 
@@ -442,8 +701,51 @@ public abstract class RequestContextHolder  {
 
 ## 其他
 
-### 如果实现数据传递
+### 如果父子线程共享变量
+
+#### InheritableThreadLocal
+
+### hash冲突解决
+
+#### 链地址法
+
+hash(key)之后的地址i构成一个同义词单链表，并将单链表的头指针存在哈希表的第i个单元中，因而查找、插入和删除主要在同义词链中进行。
+
+<div align=center>
+
+![1587708395831.png](..\images\1587708395831.png)
+
+</div>
+
+**链地址法特点**
+
+1. 处理冲突简单，且无堆积现象，平均查找长度短。
+2. 链表中的结点是动态申请的，适合构造表不能确定长度的情况。
+3. 删除结点的操作易于实现。只要简单地删去链表上相应的结点即可。
+4. 指针需要额外的空间，故当结点规模较小时，开放定址法较为节省空间。
+
+#### 开放地址法（线性探测法）
+
+hash(key)一旦发生了冲突，就去寻找下一个空的散列地址，只要散列表足够大，空的散列地址总能找到，并将记录存入。
+
+<div align=center>
+
+![1587708550090.png](..\images\1587708550090.png)
+
+</div>
+
+**开放地址法特点**
+
+1. 容易产生堆积问题，不适于大规模的数据存储。
+2. 散列函数的设计对冲突会有很大的影响，插入时可能会出现多次冲突的现象。
+3. 删除的元素是多个冲突元素中的一个，需要对后面的元素作处理，实现较复杂。
+
+#### ThreadLocalMap采用开放地址法原因
+
+1. ThreadLocal 中看到一个属性 HASH_INCREMENT = 0x61c88647 ，0x61c88647 是一个神奇的数字，让哈希码能均匀的分布在2的N次方的数组里, 即 Entry[] table
+2. ThreadLocal 往往存放的数据量不会特别大（而且key 是弱引用又会被垃圾回收，及时让数据量更小），这个时候开放地址法简单的结构会显得更省空间，同时数组的查询效率也是非常高，加上第一点的保障，冲突概率也低
 
 ## 参考
 
 1. 《Java并发编程的艺术》
+2. [吃透源码的每一个细节和设计原理--ThreadLocal](https://www.toutiao.com/i6750511984854172173/)
