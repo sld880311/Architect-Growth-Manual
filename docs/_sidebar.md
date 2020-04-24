@@ -4,6 +4,7 @@
   - [面向对象](book/java-object-oriented.md)
   - [JAVA内部类](book/java-inner-class.md)
   - [JAVA反射](book/java-reflect.md)
+  - [JAVA异常](book/java-exception.md)
   - JAVA工具类分析
     - [解析JAVA中的字符串](book/java-string.md)
 
