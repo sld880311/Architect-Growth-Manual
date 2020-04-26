@@ -18,7 +18,7 @@
   - [JAVA开发注意事项](book/java-note.md)
 
 - 第二章 JAVA并发编程
-  - 上下文切换
+  - [上下文切换](book/java-thread-context.md)
   - JAVA内存模型
   - 线程的基本使用
   - 线程通信
