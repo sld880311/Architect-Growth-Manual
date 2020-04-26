@@ -1,3 +1,38 @@
+<!-- TOC -->
+
+- [mysql日志详解](#mysql日志详解)
+    - [Binlog日志](#binlog日志)
+        - [作用](#作用)
+            - [记录信息](#记录信息)
+            - [特性](#特性)
+        - [常用配置](#常用配置)
+        - [格式](#格式)
+        - [刷盘](#刷盘)
+    - [事务日志](#事务日志)
+        - [说明](#说明)
+        - [原理](#原理)
+        - [查看事务日志定义](#查看事务日志定义)
+            - [参数说明](#参数说明)
+                - [innodb_flush_log_at_trx_commit](#innodb_flush_log_at_trx_commit)
+                - [innodb_mirrored_log_groups](#innodb_mirrored_log_groups)
+            - [文件位置](#文件位置)
+    - [慢查询日志](#慢查询日志)
+    - [查询日志](#查询日志)
+    - [错误日志](#错误日志)
+    - [数据日志文件比对](#数据日志文件比对)
+        - [ib_logfile与log-bin区别](#ib_logfile与log-bin区别)
+        - [redo、undo、binlog的区别](#redoundobinlog的区别)
+        - [ibdata](#ibdata)
+            - [作用](#作用-1)
+            - [导致该文件变大的原因](#导致该文件变大的原因)
+            - [瘦身](#瘦身)
+            - [扩容](#扩容)
+                - [更多说明](#更多说明)
+    - [其他](#其他)
+    - [参考](#参考)
+
+<!-- /TOC -->
+
 # mysql日志详解
 
 ## Binlog日志

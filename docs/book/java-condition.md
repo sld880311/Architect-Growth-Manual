@@ -1,3 +1,27 @@
+<!-- TOC -->
+
+- [Java中Condition详解](#java%e4%b8%adcondition%e8%af%a6%e8%a7%a3)
+  - [说明](#%e8%af%b4%e6%98%8e)
+  - [Condition与Object的比对](#condition%e4%b8%8eobject%e7%9a%84%e6%af%94%e5%af%b9)
+  - [简单使用](#%e7%ae%80%e5%8d%95%e4%bd%bf%e7%94%a8)
+  - [等待方法](#%e7%ad%89%e5%be%85%e6%96%b9%e6%b3%95)
+    - [await](#await)
+    - [awaitUninterruptibly](#awaituninterruptibly)
+    - [awaitNanos](#awaitnanos)
+    - [awaitUntil](#awaituntil)
+  - [唤醒方法](#%e5%94%a4%e9%86%92%e6%96%b9%e6%b3%95)
+    - [signal](#signal)
+    - [signalAll](#signalall)
+  - [原理](#%e5%8e%9f%e7%90%86)
+    - [类图](#%e7%b1%bb%e5%9b%be)
+    - [队列实现原理](#%e9%98%9f%e5%88%97%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86)
+    - [await原理](#await%e5%8e%9f%e7%90%86)
+    - [signal/signalall原理](#signalsignalall%e5%8e%9f%e7%90%86)
+    - [整体流程](#%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b)
+  - [参考](#%e5%8f%82%e8%80%83)
+
+<!-- /TOC -->
+
 # Java中Condition详解
 
 ## 说明

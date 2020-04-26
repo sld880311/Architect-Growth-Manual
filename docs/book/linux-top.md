@@ -1,3 +1,14 @@
+<!-- TOC -->
+
+- [Linux中top命令的使用](#linux%e4%b8%adtop%e5%91%bd%e4%bb%a4%e7%9a%84%e4%bd%bf%e7%94%a8)
+  - [语法](#%e8%af%ad%e6%b3%95)
+  - [常用语法](#%e5%b8%b8%e7%94%a8%e8%af%ad%e6%b3%95)
+  - [显示列](#%e6%98%be%e7%a4%ba%e5%88%97)
+  - [作用](#%e4%bd%9c%e7%94%a8)
+  - [VIRT RES SHR的准确含义](#virt-res-shr%e7%9a%84%e5%87%86%e7%a1%ae%e5%90%ab%e4%b9%89)
+  - [参考](#%e5%8f%82%e8%80%83)
+
+<!-- /TOC -->
 # Linux中top命令的使用
 
 ## 语法
