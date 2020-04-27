@@ -18,9 +18,16 @@
   - [JAVA开发注意事项](book/java-note.md)
 
 - 第二章 JAVA并发编程
-  - [上下文切换](book/java-thread-context.md)
+  - [并发编程面临的问题](book/java-thread-context.md)
   - JAVA内存模型
   - 线程的基本使用
+    - [线程概念](book/java-thread-base.md)
+    - [线程状态](book/java-thread-status.md)
+    - [线程创建](book/java-thread-create.md)
+    - [线程中断](book/java-thread-interrupt.md)
+    - [线程常用方法](book/java-thread-method.md)
+    - [守护线程](book/java-thread-daemon.md)
+    - [守护优先级](book/java-thread-priority.md)
   - 线程通信
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
@@ -57,6 +64,7 @@
     - [TOP命令](book/linux-top.md)
     - [iostat](book/linux-iostat.md)
     - [netstat/ss](book/linux-netstat-ss.md)
+    - [vmstat](book/linux-vmstat.md)
 
 - 第七章 InfluxDB数据库
 - 第八章 Docker
