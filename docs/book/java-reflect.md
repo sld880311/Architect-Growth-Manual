@@ -34,7 +34,6 @@
         - [Java的安全模型](#java%e7%9a%84%e5%ae%89%e5%85%a8%e6%a8%a1%e5%9e%8b)
         - [Java中访问控制的实现](#java%e4%b8%ad%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e7%9a%84%e5%ae%9e%e7%8e%b0)
         - [Java中的作用域（访问控制）](#java%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
-    - [Type](#type)
     - [ClassUtils](#classutils)
     - [自定义ClassUtils](#%e8%87%aa%e5%ae%9a%e4%b9%89classutils)
   - [参考](#%e5%8f%82%e8%80%83)
@@ -277,14 +276,6 @@ Field、Method和Constructor类，它们都有一个共同的父类AccessibleObj
 ![1587540118382.png](..\images\1587540118382.png)
 
 </div>
-
-### Type
-
-Type 是 Java 编程语言中所有类型的公共高级接口。它们包括原始类型、参数化类型、数组类型、类型变量和基本类型。Type 表示的全部类型而每个Class对象表示一个具体类型的实例，如String.class仅代表String类型。由此看来Type与 Class 表示类型几乎是相同的（Class实现接口Type），只不过 Type表示的范围比Class要广得多而已。当然Type还有其他子类，如：
-
-1. TypeVariable：表示类型参数，可以有上界，比如：T extends Number
-2. ParameterizedType：表示参数化的类型，有原始类型和具体的类型参数，比如：List<String>
-3. WildcardType：表示通配符类型，比如：?, ? extends Number, ? super Integer
 
 ### ClassUtils
 

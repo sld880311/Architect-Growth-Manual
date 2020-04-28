@@ -10,11 +10,9 @@
   - [JAVA流](book/java-io-nio.md)
   - [JAVA集合](book/java-collection-map.md)
   - [JAVA克隆](book/java-clone.md)
-  - JAVA开发工具
-    - [Eclipse](book/java-ide-eclipse.md)
-    - [JDK环境变量配置](book/java-ide-jdk.md)
   - JAVA工具类分析
     - [解析JAVA中的字符串](book/java-string.md)
+    - [解析JAVA中的Type](book/java-type.md)
   - [JAVA开发注意事项](book/java-note.md)
 
 - 第二章 JAVA并发编程
@@ -49,7 +47,7 @@
 
 - 第五章 设计模式
   - 设计原则
-  - 单利模式
+  - 单例模式
 
 - 第六章 Linux操作系统
   - 网络
