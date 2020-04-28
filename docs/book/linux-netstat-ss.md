@@ -365,3 +365,6 @@ ss的优势在于它能够显示更多更详细的有关TCP和连接状态的信
 
 1. [Linux netstat命令详解](https://www.cnblogs.com/ftl1012/p/netstat.html)
 2. [SS命令和Netstat命令比较](https://www.cnblogs.com/kevingrace/p/6211509.html)
+3. [解决TIME_WAIT过多造成的问题](https://www.cnblogs.com/dadonggg/p/8778318.html)
+4. [一文掌握 Linux 性能分析之网络篇](https://www.cnblogs.com/bakari/p/10515977.html)
+5. [Linux系统排查4——网络篇](https://www.cnblogs.com/Security-Darren/p/4700387.html)

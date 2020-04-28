@@ -94,3 +94,4 @@
 - 第32章 数据库连接池
 
 - 附录
+  - [eclipse使用](book/ide-eclipse.md)

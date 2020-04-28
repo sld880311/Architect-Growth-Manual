@@ -44,6 +44,8 @@
     - [详细分析](#%e8%af%a6%e7%bb%86%e5%88%86%e6%9e%90)
   - [其他](#%e5%85%b6%e4%bb%96)
     - [String与StringBuffer、StringBuilder](#string%e4%b8%8estringbufferstringbuilder)
+      - [String循环拼接对象](#string%e5%be%aa%e7%8e%af%e6%8b%bc%e6%8e%a5%e5%af%b9%e8%b1%a1)
+      - [使用StringBuilder](#%e4%bd%bf%e7%94%a8stringbuilder)
     - [==与equals](#%e4%b8%8eequals)
     - [编码问题](#%e7%bc%96%e7%a0%81%e9%97%ae%e9%a2%98)
       - [示例](#%e7%a4%ba%e4%be%8b)
@@ -77,10 +79,11 @@ public final class String
 
 通过API定义总结以下信息：
 
-1. 使用final修饰，则不能被继承
+1. 使用final修饰，则不能被继承（该类中的成员方法默认都是final）
 2. 实现接口`Serializable`，说明可以进行序列化
 3. 实现接口`Comparable`,说明可以大小比较
 4. 实现接口`CharSequence`,说明String本身就是char类型的数组，而且通过成员变量定义可以进行佐证
+5. 通过char字符数组实现
 
 ## 如何创建字符串
 
@@ -705,7 +708,7 @@ public int compareTo(String anotherString) {
 
 ## String的不可变性
 
-在定义String时增加了`final`标记，并且存储数据的数组也被定义为`final`，则表示String一但创建就注定不可变。
+在定义String时增加了`final`标记，并且存储数据的数组也被定义为`final`，则表示String一但创建就注定不可变。**对String对象的任何改变都不影响到原对象，相关的任何change操作都会生成新的对象**
 
 ### 原因
 
@@ -762,6 +765,114 @@ public int compareTo(String anotherString) {
 3. StringBuffer是线程安全的，效率低
 4. StringBuilder和String是线程不安全的，效率高一些，
 5. 效率从高到低：StringBuilder>String>StringBuffer
+
+#### String循环拼接对象
+
+```java
+package com.sunld.string;
+public class Test1 {
+	public static void main(String[] args) {
+		String string = "";
+		for(int i=0;i<10000;i++) {
+			string += "hello";
+		}
+		System.out.println(string);
+	}
+}
+```
+
+```java
+Compiled from "Test1.java"
+public class com.sunld.string.Test1 {
+  public com.sunld.string.Test1();
+    Code:
+       0: aload_0
+       1: invokespecial #8                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: ldc           #16                 // String
+       2: astore_1
+       3: iconst_0
+       4: istore_2
+       5: goto          31
+       8: new           #18                 // class java/lang/StringBuilder
+      11: dup
+      12: aload_1
+      13: invokestatic  #20                 // Method java/lang/String.valueOf:(Ljava/lang/Object;)Ljava/lang/String;
+      16: invokespecial #26                 // Method java/lang/StringBuilder."<init>":(Ljava/lang/String;)V
+      19: ldc           #29                 // String hello
+      21: invokevirtual #31                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      24: invokevirtual #35                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      27: astore_1
+      28: iinc          2, 1
+      31: iload_2
+      32: sipush        10000
+      35: if_icmplt     8
+      38: getstatic     #39                 // Field java/lang/System.out:Ljava/io/PrintStream;
+      41: aload_1
+      42: invokevirtual #45                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+      45: return
+}
+```
+
+8~35行是整个循环过程，并且每次都会new一个StringBuilder（String拼接被jvm优化为使用StringBuilder处理）
+
+#### 使用StringBuilder
+
+```java
+package com.sunld.string;
+
+public class Test2 {
+
+	public static void main(String[] args) {
+		StringBuilder string = new StringBuilder();
+		for(int i=0;i<10000;i++) {
+			string.append("hello");
+		}
+		System.out.println(string.toString());
+	}
+
+}
+```
+
+```java
+Compiled from "Test2.java"
+public class com.sunld.string.Test2 {
+  public com.sunld.string.Test2();
+    Code:
+       0: aload_0
+       1: invokespecial #8                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: new           #16                 // class java/lang/StringBuilder
+       3: dup
+       4: invokespecial #18                 // Method java/lang/StringBuilder."<init>":()V
+       7: astore_1
+       8: iconst_0
+       9: istore_2
+      10: goto          23
+      13: aload_1
+      14: ldc           #19                 // String hello
+      16: invokevirtual #21                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      19: pop
+      20: iinc          2, 1
+      23: iload_2
+      24: sipush        10000
+      27: if_icmplt     13
+      30: getstatic     #25                 // Field java/lang/System.out:Ljava/io/PrintStream;
+      33: aload_1
+      34: invokevirtual #31                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      37: invokevirtual #35                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+      40: return
+}
+
+```
+
+13~27整个循环处理过程，只创建了一次对象。
 
 ### ==与equals
 
