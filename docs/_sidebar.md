@@ -66,6 +66,15 @@
 
 - 第七章 InfluxDB数据库
 - 第八章 Docker
+  - 容器生态系统
+  - 容器架构
+  - 镜像
+  - 容器
+  - 存储
+  - 多主机管理
+  - 网络
+  - 数据管理
+  - 本地环境使用
 - 第九章 K8S
 - 第十章 机器学习
 - 第11章 云计算
@@ -90,6 +99,13 @@
 - 第30章 Strom
 - 第31章 Hadoop
 - 第32章 数据库连接池
+- 第33章 VmWare
+- 第34章 OpenStack
 
 - 附录
   - [eclipse使用](book/ide-eclipse.md)
+  - [JDK环境变量配置](book/ide-jdk.md)
+  - git
+  - maven
+  - visio
+  - excel

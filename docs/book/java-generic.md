@@ -19,7 +19,6 @@
         - [局限性](#局限性)
         - [泛型继承规则](#泛型继承规则)
     - [泛型与反射](#泛型与反射)
-    - [JVM中的实现](#jvm中的实现)
     - [参考](#参考)
 
 <!-- /TOC -->
@@ -227,9 +226,9 @@ public class TestGenericType1<T> {
 }
 ```
 
-## JVM中的实现
-
 ## 参考
 
 1. [Java 泛型在实际开发中的应用](https://www.cnblogs.com/ldh-better/p/7127308.html#_label0)
 2. [Java泛型详解](https://www.jianshu.com/p/986f732ed2f1)
+3. [Java总结篇系列：Java泛型](https://www.cnblogs.com/lwbqqyumidi/p/3837629.html)
+4. [java 泛型详解-绝对是对泛型方法讲解最详细的，没有之一](https://www.cnblogs.com/coprince/p/8603492.html)
