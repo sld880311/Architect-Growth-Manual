@@ -13,7 +13,8 @@
   - JAVA工具类分析
     - [解析JAVA中的字符串](book/java-string.md)
     - [解析JAVA中的Type](book/java-type.md)
-  - [JAVA开发注意事项](book/java-note.md)
+  - JAVA开发注意事项
+    - [JAVA值传递](book/java-pass-by-value.md)
 
 - 第二章 JAVA并发编程
   - [并发编程面临的问题](book/java-thread-context.md)
@@ -56,7 +57,7 @@
   - 存储
     - [零拷贝（Zero-Copy）](book/linux-storage-zero-copy.md)
   - 性能分析
-    - [CPU使用率过高](book/linux-performance-analysis-cpu.md)
+    - [CPU过高](book/linux-performance-analysis-cpu.md)
     - [网络TIME_WAIT过高](book/linux-performance-analysis-time-wait.md)
   - 常用命令
     - [TOP命令](book/linux-top.md)
@@ -103,9 +104,11 @@
 - 第34章 OpenStack
 
 - 附录
-  - [eclipse使用](book/ide-eclipse.md)
-  - [JDK环境变量配置](book/ide-jdk.md)
-  - git
-  - maven
-  - visio
-  - excel
+  - 常用工具
+    - [eclipse使用](book/ide-eclipse.md)
+    - [JDK环境变量配置](book/ide-jdk.md)
+    - [javap详解](book/javap.md)
+    - git
+    - maven
+    - visio
+    - excel
