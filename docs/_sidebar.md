@@ -15,8 +15,9 @@
     - [解析JAVA中的Type](book/java-type.md)
   - JAVA开发注意事项
     - [JAVA值传递](book/java-pass-by-value.md)
+    - [JAVA高效编程](book/java-efficient-programming.md)
 
-- 第二章 JAVA并发编程
+- [第二章 JAVA并发编程](book/java-thread-introduction.md)
   - [并发编程面临的问题](book/java-thread-context.md)
   - JAVA内存模型
   - 线程的基本使用
@@ -41,11 +42,13 @@
     - [工厂类Executors](book/java-executors.md)
     - [Future与FutureTask（任务执行结果处理）](book/java-future-futuretask.md)
     - [Java中的阻塞队列](book/java-queue.md)
+    - [实例1：设备升级](book/java-thread-example1.md)
 
 - 第三章 JVM
   
 - 第四章 数据库
   - [MYSQL日志](book/database-mysql-log.md)
+  - [MYSQL配置文件详解](book/database-mysql-cnf.md)
 
 - 第五章 设计模式
   - 设计原则
