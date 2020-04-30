@@ -248,3 +248,5 @@ SourceFile: "TestPassByValue.java"
 ```
 
 ## 参考
+
+1. [通过javap命令分析java汇编指令](https://www.jianshu.com/p/6a8997560b05)

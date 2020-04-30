@@ -27,6 +27,7 @@
     - [线程常用方法](book/java-thread-method.md)
     - [守护线程](book/java-thread-daemon.md)
     - [守护优先级](book/java-thread-priority.md)
+    - [调度方式](book/java-thread-schedule.md)
   - 线程通信
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
@@ -48,7 +49,7 @@
 
 - 第五章 设计模式
   - 设计原则
-  - 单例模式
+  - [单例模式](book/pattern-singleton.md)
 
 - 第六章 Linux操作系统
   - 网络
