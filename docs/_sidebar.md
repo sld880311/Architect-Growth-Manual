@@ -45,6 +45,11 @@
     - [实例1：设备升级](book/java-thread-example1.md)
 
 - 第三章 JVM
+  - JVM性能分析
+    - Thread Dump
+  - [JVM类加载机制](book/jvm-class-loader.md)
+  - 其他
+    - [两套JRE](book/jvm-2-jre.md)
   
 - 第四章 数据库
   - [MYSQL日志](book/database-mysql-log.md)
