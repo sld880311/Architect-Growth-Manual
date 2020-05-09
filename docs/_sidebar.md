@@ -47,6 +47,7 @@
 - 第三章 JVM
   - JVM性能分析
     - Thread Dump
+  - [JVM类文件结构](book/jvm-class-structure.md)
   - [JVM类加载机制](book/jvm-class-loader.md)
   - 其他
     - [两套JRE](book/jvm-2-jre.md)
@@ -92,6 +93,9 @@
 - 第13章 算法
 - 第14章 Spring
 - 第15章 Hibernate
+  - [Hibernate对象状态](book/hibernate-object-status.md)
+  - [Hibernate缓存](book/hibernate-cache.md)
+  - [Hibernate常用方法](book/hibernate-methods.md)
 - 第16章 MyBatis
 - 第17章 Netty
 - 第18章 Tomcat
@@ -121,3 +125,5 @@
     - maven
     - visio
     - excel
+    - 其他
+      - [SpringBoot常用配置参考](book/springboot-config-default.md)
