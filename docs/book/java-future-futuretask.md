@@ -49,3 +49,81 @@ FutureTask提供了2个构造器：
 3	public FutureTask(Runnable runnable, V result) {
 4	}
 事实上，FutureTask是Future接口的一个唯一实现类。
+
+
+<div align=center>
+
+![1589104751091.png](..\images\1589104751091.png)
+
+</div>
+
+1.1.1.1	状态迁移
+<div align=center>
+
+![1589104772015.png](..\images\1589104772015.png)
+
+</div>
+
+1.1.1.1	Get与cancel
+
+<div align=center>
+
+![1589104792468.png](..\images\1589104792468.png)
+
+</div>
+
+1.1.1.1	使用
+可以把FutureTask交给Executor执行；也可以通过ExecutorService.submit（…）方法返回一个FutureTask，然后执行FutureTask.get()方法或FutureTask.cancel（…）方法。除此以外，还可以单独使用FutureTask。
+当一个线程需要等待另一个线程把某个任务执行完后它才能继续执行，此时可以使用FutureTask。假设有多个线程执行若干任务，每个任务最多只能被执行一次。当多个线程试图同时执行同一个任务时，只允许一个线程执行任务，其他线程需要等待这个任务执行完后才能继续执行。
+package com.sunld.thread;
+
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+
+public class FutureTaskTest {
+	
+	private final Map<Object, Future<String>> takeCache = new ConcurrentHashMap<>();
+
+	public String executionTask(final String taskName) {
+		while(true) {
+			Future<String> future = takeCache.get(taskName);
+			if(future == null) {
+				// 创建任务
+				FutureTask<String> futureTask = new FutureTask<String>(new Callable<String>() {
+					@Override
+					public String call() throws Exception {
+						return taskName;
+					}
+				});
+				future = takeCache.putIfAbsent(taskName, futureTask);
+				if(future == null) {
+					future = futureTask;
+					// 执行任务
+					futureTask.run();
+				}
+			}
+			try {
+				// 等待执行完成
+				return future.get();
+			}catch(Exception e) {
+				takeCache.remove(taskName, future);
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+
+	}
+
+}
+<div align=center>
+
+![1589104822530.png](..\images\1589104822530.png)
+
+</div>
+
+

@@ -13,13 +13,14 @@
   - JAVA工具类分析
     - [解析JAVA中的字符串](book/java-string.md)
     - [解析JAVA中的Type](book/java-type.md)
+    - [stream](book/java-stream.md)
   - JAVA开发注意事项
     - [JAVA值传递](book/java-pass-by-value.md)
     - [JAVA高效编程](book/java-efficient-programming.md)
 
 - [第二章 JAVA并发编程](book/java-thread-introduction.md)
   - [并发编程面临的问题](book/java-thread-context.md)
-  - JAVA内存模型
+  - [JAVA内存模型](book/java-memory-modules.md)
   - 线程的基本使用
     - [线程概念](book/java-thread-base.md)
     - [线程状态](book/java-thread-status.md)
@@ -32,8 +33,9 @@
   - 线程通信
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
-  - 锁
-  - 互斥同步（并发访问）
+  - [锁](book/java-thread-锁.md)
+  - [互斥同步（并发访问）](book/java-thread-互斥同步.md)
+  - [线程控制手段](book/java-thread-tools.md)
   - Java线程池
     - [Java线程池概述](book/java-threadpools.md)
     - [Java线程池架构Executor、ExecutorService](book/java-executor-executorservice.md)
@@ -44,17 +46,29 @@
     - [Java中的阻塞队列](book/java-queue.md)
     - [实例1：设备升级](book/java-thread-example1.md)
 
-- 第三章 JVM
+- [第三章 JVM](book/jvm.md)
   - JVM性能分析
     - Thread Dump
+  - [JVM内存区域](book/jvm-memory.md)
+  - [JVM垃圾回收与算法](book/jvm-垃圾回收与算法.md)
   - [JVM类文件结构](book/jvm-class-structure.md)
   - [JVM类加载机制](book/jvm-class-loader.md)
+  - [HotSpot虚拟机对象探秘](book/jvm-hotspot-object.md)
   - 其他
     - [两套JRE](book/jvm-2-jre.md)
   
 - 第四章 数据库
+  - [MYSQL架构](book/database-mysql-架构.md)
+  - [MYSQL场景分析](book/database-mysql-场景分析.md)
+  - [MYSQL存储引擎](book/database-mysql-存储引擎.md)
+  - [MYSQL索引](book/database-mysql-index.md)
   - [MYSQL日志](book/database-mysql-log.md)
   - [MYSQL配置文件详解](book/database-mysql-cnf.md)
+  - [数据库设计思想](book/database-设计思想.md)
+  - [数据库事务](book/database-事务.md)
+  - [数据库语法](book/database-语法.md)
+  - [分布式事务](book/database-分布式事务.md)
+  - [锁](book/database-锁.md)
 
 - 第五章 设计模式
   - 设计原则
@@ -76,7 +90,16 @@
     - [vmstat](book/linux-vmstat.md)
 
 - 第七章 InfluxDB数据库
-- 第八章 Docker
+  - [时序数据库](book/influxdb-时序数据库.md)
+  - [时序数据库模型设计](book/influxdb-时序数据库模型设计.md)
+  - [初识InfluxDB](book/初识influxdb.md)
+  - [InfluxDB TSM存储引擎之TSMFile](book/influxdb-tsmfile.md)
+  - [InfluxDB多维查询之倒排索引](book/influxdb-倒排索引.md)
+  - [InfluxDB TSM存储引擎之数据写入](book/influxdb-写入.md)
+  - [InfluxDB TSM存储引擎之数据读取](book/influxdb-读取.md)
+  - [Druid 多维查询之Bitmap索引](book/influxdb-druid.md)
+  - [Influxdb常用脚本和配置](book/influxdb-config.md)
+- [第八章 Docker](book/docker.md)
   - 容器生态系统
   - 容器架构
   - 镜像
@@ -87,34 +110,44 @@
   - 数据管理
   - 本地环境使用
 - 第九章 K8S
-- 第十章 机器学习
-- 第11章 云计算
-- 第12章 数据结构
-- 第13章 算法
-- 第14章 Spring
+- [第十章 机器学习](book/ml.md)
+- [第11章 云计算](book/cloud.md)
+  - [网络](book/cloud-network.md)
+    - [cdn](book/cloud-network-cdn.md)
+- [第12章 数据结构](book/数据结构.md)
+- [第13章 算法](book/算法.md)
+- [第14章 Spring](book/spring.md)
 - 第15章 Hibernate
   - [Hibernate对象状态](book/hibernate-object-status.md)
   - [Hibernate缓存](book/hibernate-cache.md)
   - [Hibernate常用方法](book/hibernate-methods.md)
 - 第16章 MyBatis
-- 第17章 Netty
+  - [MyBatis缓存](book/mybatis-cache.md)
+- [第17章 Netty](book/netty.md)
 - 第18章 Tomcat
-- 第19章 微服务
-- 第20章 日志组件
-- 第21章 Zookpeer
-- 第22章 Kafka
-- 第23章 RabbitMQ
-- 第24章 Hbase
+- [第19章 微服务](book/微服务.md)
+- [第20章 日志组件](book/logger.md)
+- [第21章 Zookpeer](book/zookpeer.md)
+- [第22章 Kafka](book/kafka.md)
+- [第23章 RabbitMQ](book/rabbitmq.md)
+- [第24章 Hbase](book/hbase.md)
 - 第25章 Redis
 - 第26章 Memcache
-- 第27章 MongoDB
-- 第28章 高可用
+- [第27章 MongoDB](book/mongodb.md)
+- [第28章 高可用](book/高可用.md)
 - 第29章 Spark
-- 第30章 Strom
+  - [Spark](book/spark.md)
+- [第30章 Strom](book/strom.md)
 - 第31章 Hadoop
+  - [Hadoop说明](book/hadoop.md)
 - 第32章 数据库连接池
 - 第33章 VmWare
 - 第34章 OpenStack
+- 第35章 YARN
+  - [YARN](book/yarn.md)
+- [第36章 分布式缓存](book/分布式缓存.md)
+- [第37章 Cassandra](book/cassandra.md)
+- [第38章 Thrift](book/thrift.md)
 
 - 附录
   - 常用工具
