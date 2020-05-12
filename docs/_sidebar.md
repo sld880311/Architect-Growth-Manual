@@ -70,9 +70,10 @@
   - [分布式事务](book/database-分布式事务.md)
   - [锁](book/database-锁.md)
 
-- 第五章 设计模式
+- 第五章 软件设计
   - 设计原则
-  - [单例模式](book/pattern-singleton.md)
+  - 设计模式
+    - [单例模式](book/pattern-singleton.md)
 
 - 第六章 Linux操作系统
   - 网络
