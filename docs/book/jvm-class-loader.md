@@ -23,11 +23,10 @@
     - [初始化（类变量完成初始化）](#初始化类变量完成初始化)
         - [不会初始化的情况](#不会初始化的情况)
     - [类加载器](#类加载器)
-        - [启动类加载器(Bootstrap ClassLoader)](#启动类加载器bootstrap-classloader)
-        - [扩展类加载器(Extension ClassLoader)](#扩展类加载器extension-classloader)
-        - [应用程序类加载器(Application ClassLoader)](#应用程序类加载器application-classloader)
-    - [双亲委派原则](#双亲委派原则)
-    - [OSGI（动态模型系统）](#osgi动态模型系统)
+        - [双亲委派原则](#双亲委派原则)
+            - [双亲委派原则参考代码](#双亲委派原则参考代码)
+        - [ClassLoader详解](#classloader详解)
+    - [OSGI（动态模型系统）:模块化系统](#osgi动态模型系统模块化系统)
         - [动态改变构造](#动态改变构造)
         - [模块化编程与热插拔](#模块化编程与热插拔)
     - [参考](#参考)
@@ -56,8 +55,8 @@ Java虚拟机把描述类的数据从class文件加载到内存，并且对数�
 6. 当一个接口中定义了JDK 8新加入的默认方法（被default关键字修饰的接口方法）时，如果有这个接口的实现类发生了初始化，那该接口要在其之前被初始化。
 
 > 说明
-> > 对于静态字段，只有直接定义这个字段的类才会被初始化
-> > 接口与类真正有所区别的是前面讲述的六种“有且仅有”需要触发初始化场景中的第三种：当一个类在初始化时，要求其父类全部都已经初始化过了，但是一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有在真正使用到父接口的时候（如引用接口中定义的常量）才会初始化。
+> > 对于静态字段，只有直接定义这个字段的类才会被初始化  
+> > 接口与类真正有所区别的是前面讲述的六种“有且仅有”需要触发初始化场景中的第三种：当一个类在初始化时，要求其父类全部都已经初始化过了，但是一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有在真正使用到父接口的时候（如引用接口中定义的常量）才会初始化。  
 
 ## 加载（Loading）
 
@@ -119,9 +118,9 @@ Java虚拟机把描述类的数据从class文件加载到内存，并且对数�
 
 为了提高字节码验证阶段的时间，JDK6之后在javac编译期阶段的方法体code中增加了一个`StackMapTable`的新属性，这项属性描述了**方法体所有的基本块**（Basic Block，指按照控制流拆分的代码块）开始时本地变量表和操作栈应有的状态，在字节码验证期间，Java虚拟机就不需要根据程序推导这些状态的合法性，只需要检查StackMapTable属性中的记录是否合法即可。StackMapTable属性也存在错误或被篡改的可能，所以是否有可能在恶意篡改了Code属性的同时，也生成相应的StackMapTable属性来骗过虚拟机的类型校验。
 
-> 扩展知识
-> > 使用`-XX：-UseSplitVerifier`关闭该优化，或使用`-XX：+FailOverToOldVerifier`要求在类型校验失败的时候退回到旧的类型推导方式进行校验。
-> > JDK 7之后，尽管虚拟机中仍然保留着类型推导验证器的代码，但是对于主版本号大于50（对应JDK 6）的Class文件，使用类型检查来完成数据流分析校验则是唯一的选择，不允许再退回到原来的类型推导的校验方式。
+> 扩展知识  
+> > 使用`-XX：-UseSplitVerifier`关闭该优化，或使用`-XX：+FailOverToOldVerifier`要求在类型校验失败的时候退回到旧的类型推导方式进行校验。  
+> > JDK 7之后，尽管虚拟机中仍然保留着类型推导验证器的代码，但是对于主版本号大于50（对应JDK 6）的Class文件，使用类型检查来完成数据流分析校验则是唯一的选择，不允许再退回到原来的类型推导的校验方式。  
 
 ### 符号引用验证
 
@@ -138,8 +137,8 @@ Java虚拟机把描述类的数据从class文件加载到内存，并且对数�
 该阶段是正式为**类变量（static修饰）分配内存并且完成初始化赋值的阶段（即在方法区分配内存空间）**。
 
 > 关于方法区的特殊说明
-> > JDK 7及之前，HotSpot使用永久代来实现方法区
-> > JDK 8及之后，类变量则会随着Class对象一起存放在Java堆中
+> > JDK 7及之前，HotSpot使用永久代来实现方法区  
+> > JDK 8及之后，类变量则会随着Class对象一起存放在Java堆中  
 
 ### 初始值的概念
 
@@ -357,21 +356,11 @@ JVM的解析过程：
 
 ## 类加载器
 
-虚拟机设计团队把加载动作放到 JVM 外部实现，以便让应用程序决定如何获取所需的类，JVM 提供了 3 种类加载器：
-
-### 启动类加载器(Bootstrap ClassLoader)
-
-负责加载 JAVA_HOME\lib 目录中的，或通过-Xbootclasspath 参数指定路径中的，且被虚拟机认可（按文件名识别，如 rt.jar）的类。
-
-### 扩展类加载器(Extension ClassLoader)
-
-负责加载 JAVA_HOME\lib\ext 目录中的，或通过 java.ext.dirs 系统变量指定路径中的类库。
-
-### 应用程序类加载器(Application ClassLoader)
+类加载器只用于实现类的加载动作，并且每个类记载器都有一个独立的类名称空间（**类加载器+类全限定名来确定类的唯一性**）。
 
 负责加载用户路径（classpath）上的类库。
 
-## 双亲委派原则
+### 双亲委派原则
 
 JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继承 java.lang.ClassLoader 实现自定义的类加载器。
 
@@ -381,7 +370,7 @@ JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继�
 
 </div>
 
-当一个类收到了类加载请求，他首先不会尝试自己去加载这个类，而是把这个请求委派给父类去完成，每一个层次类加载器都是如此，因此所有的加载请求都应该传送到启动类加载其中，只有当父类加载器反馈自己无法完成这个请求的时候（在它的加载路径下没有找到所需加载的Class），子类加载器才会尝试自己去加载。采用双亲委派的一个好处是比如加载位于 rt.jar 包中的类 java.lang.Object，不管是哪个加载器加载这个类，最终都是委托给顶层的启动类加载器进行加载，这样就保证了使用不同的类加载器最终得到的都是同样一个 Object 对象。
+当一个类收到了类加载请求，他首先不会尝试自己去加载这个类，而是把这个请求委派给父类去完成，每一个层次类加载器都是如此，因此所有的加载请求都应该传送到启动类加载其中，只有当父类加载器反馈自己无法完成这个请求的时候（在它的加载路径下没有找到所需加载的Class），子类加载器才会尝试自己去加载。采用双亲委派的一个好处是比如加载位于 rt.jar 包中的类 java.lang.Object，不管是哪个加载器加载这个类，最终都是委托给顶层的启动类加载器进行加载，这样就**保证了使用不同的类加载器最终得到的都是同样一个 Object 对象。**
 
 <div align=center>
 
@@ -389,7 +378,137 @@ JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继�
 
 </div>
 
-## OSGI（动态模型系统）
+1. 启动类加载器(Bootstrap ClassLoader，C++实现，JVM的一部分)：负责加载 JAVA_HOME\lib 目录中的，或通过-Xbootclasspath 参数指定路径中的，且被虚拟机认可（按文件名识别，如 rt.jar，不能识别的则不能加载）的类。启动类加载器无法被Java程序直接引用，用户在编写自定义类加载器时，如果需要把加载请求委派给引导类加载器去处理，那直接使用null代替即可。
+   
+   ```java
+    /**
+     * Returns the class loader for the class.  Some implementations may use
+     * null to represent the bootstrap class loader. This method will return
+     * null in such implementations if this class was loaded by the bootstrap
+     * class loader.
+     *
+     * <p> If a security manager is present, and the caller's class loader is
+     * not null and the caller's class loader is not the same as or an ancestor of
+     * the class loader for the class whose class loader is requested, then
+     * this method calls the security manager's {@code checkPermission}
+     * method with a {@code RuntimePermission("getClassLoader")}
+     * permission to ensure it's ok to access the class loader for the class.
+     *
+     * <p>If this object
+     * represents a primitive type or void, null is returned.
+     *
+     * @return  the class loader that loaded the class or interface
+     *          represented by this object.
+     * @throws SecurityException
+     *    if a security manager exists and its
+     *    {@code checkPermission} method denies
+     *    access to the class loader for the class.
+     * @see java.lang.ClassLoader
+     * @see SecurityManager#checkPermission
+     * @see java.lang.RuntimePermission
+     */
+    @CallerSensitive
+    public ClassLoader getClassLoader() {
+        ClassLoader cl = getClassLoader0();
+        if (cl == null)
+            return null;
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            ClassLoader.checkClassLoaderPermission(cl, Reflection.getCallerClass());
+        }
+        return cl;
+    }
+   ```
+
+2. 扩展类加载器(Extension ClassLoader,在sun.misc.Launcher$ExtClassLoader中以Java代码的形式实现的)：负责加载 JAVA_HOME\lib\ext 目录中的，或通过 java.ext.dirs 系统变量指定路径中的类库。
+3. 应用程序类加载器(Application ClassLoader，由sun.misc.Launcher$AppClassLoader实现)：由于应用程序类加载器是ClassLoader类中的`getSystemClassLoader()`方法的返回值，所以有些场合中也称它为“系统类加载器”。它负责加载用户类路径（ClassPath）上所有的类库，开发者同样可以直接在代码中使用这个类加载器。
+
+#### 双亲委派原则参考代码
+
+```java
+    /**
+     * Loads the class with the specified <a href="#name">binary name</a>.  The
+     * default implementation of this method searches for classes in the
+     * following order:
+     *
+     * <ol>
+     *
+     *   <li><p> Invoke {@link #findLoadedClass(String)} to check if the class
+     *   has already been loaded.  </p></li>
+     *
+     *   <li><p> Invoke the {@link #loadClass(String) <tt>loadClass</tt>} method
+     *   on the parent class loader.  If the parent is <tt>null</tt> the class
+     *   loader built-in to the virtual machine is used, instead.  </p></li>
+     *
+     *   <li><p> Invoke the {@link #findClass(String)} method to find the
+     *   class.  </p></li>
+     *
+     * </ol>
+     *
+     * <p> If the class was found using the above steps, and the
+     * <tt>resolve</tt> flag is true, this method will then invoke the {@link
+     * #resolveClass(Class)} method on the resulting <tt>Class</tt> object.
+     *
+     * <p> Subclasses of <tt>ClassLoader</tt> are encouraged to override {@link
+     * #findClass(String)}, rather than this method.  </p>
+     *
+     * <p> Unless overridden, this method synchronizes on the result of
+     * {@link #getClassLoadingLock <tt>getClassLoadingLock</tt>} method
+     * during the entire class loading process.
+     *
+     * @param  name
+     *         The <a href="#name">binary name</a> of the class
+     *
+     * @param  resolve
+     *         If <tt>true</tt> then resolve the class
+     *
+     * @return  The resulting <tt>Class</tt> object
+     *
+     * @throws  ClassNotFoundException
+     *          If the class could not be found
+     */
+    protected Class<?> loadClass(String name, boolean resolve)
+        throws ClassNotFoundException
+    {
+        synchronized (getClassLoadingLock(name)) {
+            // First, check if the class has already been loaded
+            Class<?> c = findLoadedClass(name);
+            if (c == null) {
+                long t0 = System.nanoTime();
+                try {
+                    if (parent != null) {
+                        c = parent.loadClass(name, false);
+                    } else {
+                        c = findBootstrapClassOrNull(name);
+                    }
+                } catch (ClassNotFoundException e) {
+                    // ClassNotFoundException thrown if class not found
+                    // from the non-null parent class loader
+                }
+
+                if (c == null) {
+                    // If still not found, then invoke findClass in order
+                    // to find the class.
+                    long t1 = System.nanoTime();
+                    c = findClass(name);
+
+                    // this is the defining class loader; record the stats
+                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                    sun.misc.PerfCounter.getFindClasses().increment();
+                }
+            }
+            if (resolve) {
+                resolveClass(c);
+            }
+            return c;
+        }
+    }
+```
+
+### ClassLoader详解
+
+## OSGI（动态模型系统）:模块化系统
 
 OSGi(Open Service Gateway Initiative)，是面向 Java 的动态模型系统，是 Java 动态化模块化系统的一系列规范。
 
