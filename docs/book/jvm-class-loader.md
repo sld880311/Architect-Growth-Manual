@@ -554,8 +554,6 @@ JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继�
 
 ### ClassLoader详解
 
-
-
 ## OSGI（动态模型系统）:模块化系统
 
 OSGi(Open Service Gateway Initiative)，是面向 Java 的动态模型系统，是 Java 动态化模块化系统的一系列规范。

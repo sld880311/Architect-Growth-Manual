@@ -58,12 +58,21 @@
     - [两套JRE](book/jvm-2-jre.md)
   
 - 第四章 数据库
-  - [MYSQL架构](book/database-mysql-架构.md)
-  - [MYSQL场景分析](book/database-mysql-场景分析.md)
-  - [MYSQL存储引擎](book/database-mysql-存储引擎.md)
-  - [MYSQL索引](book/database-mysql-index.md)
-  - [MYSQL日志](book/database-mysql-log.md)
-  - [MYSQL配置文件详解](book/database-mysql-cnf.md)
+  - MYSQL
+    - [MYSQL架构](book/database-mysql-架构.md)
+    - [MYSQL场景分析](book/database-mysql-场景分析.md)
+    - [MYSQL存储引擎](book/database-mysql-存储引擎.md)
+    - [MYSQL索引](book/database-mysql-index.md)
+    - MYSQL日志
+      - [MYSQL日志概述](book/database-mysql-log-overview.md)
+      - [MYSQL错误日志](book/database-mysql-log-error.md)
+      - [MYSQL查询日志](book/database-mysql-log-query.md)
+      - [MYSQL慢查询日志](book/database-mysql-log-slowquery.md)
+      - [MYSQL Binlog（二进制）日志](book/database-mysql-log-binlog.md)
+      - [MYSQL事务日志](book/database-mysql-log-redo-undo.md)
+      - [MYSQL中继日志](book/database-mysql-log-relay.md)
+      - [MYSQL日志扩展](book/database-mysql-log-other.md)
+    - [MYSQL配置文件详解](book/database-mysql-cnf.md)
   - [数据库设计思想](book/database-设计思想.md)
   - [数据库事务](book/database-事务.md)
   - [数据库语法](book/database-语法.md)
