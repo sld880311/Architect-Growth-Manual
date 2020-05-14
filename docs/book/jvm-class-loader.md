@@ -23,8 +23,11 @@
     - [初始化（类变量完成初始化）](#初始化类变量完成初始化)
         - [不会初始化的情况](#不会初始化的情况)
     - [类加载器](#类加载器)
+        - [加载模式](#加载模式)
+        - [加载方式](#加载方式)
         - [双亲委派原则](#双亲委派原则)
             - [双亲委派原则参考代码](#双亲委派原则参考代码)
+        - [类装载器的层次关系](#类装载器的层次关系)
         - [ClassLoader详解](#classloader详解)
     - [OSGI（动态模型系统）:模块化系统](#osgi动态模型系统模块化系统)
         - [动态改变构造](#动态改变构造)
@@ -356,9 +359,42 @@ JVM的解析过程：
 
 ## 类加载器
 
-类加载器只用于实现类的加载动作，并且每个类记载器都有一个独立的类名称空间（**类加载器+类全限定名来确定类的唯一性**）。
+类加载器只用于实现类的加载动作，并且每个类记载器都有一个独立的类名称空间（**类加载器+类全限定名来确定类的唯一性**）。类装载的过程是先装在其父类，然后才是自己，卸载则相反。
 
-负责加载用户路径（classpath）上的类库。
+### 加载模式
+
+通常基础类库需要预先载入（常驻内存）、自定义类库需要按需载入（使用时载入，不用时自动被回收）。实例如下：
+
+```java
+public class Test{
+	public static void main(String[] args){
+		A a = new A();
+		a.testA();
+	}
+}
+class A{
+	public void testA(){}
+}
+class B{
+	public void testB(){}
+}
+```
+
+执行以下命令：`java -verbose Test`运行结果如下：  
+部分截图：
+
+<div align=center>
+
+![1589349448488.png](..\images\1589349448488.png)
+
+</div>
+
+通过运行结果发现，**java是按需载入**。  
+
+### 加载方式
+
+1. 隐式：使用new
+2. 显示：Class.forName或ClassLoader的loadClass
 
 ### 双亲委派原则
 
@@ -421,7 +457,7 @@ JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继�
    ```
 
 2. 扩展类加载器(Extension ClassLoader,在sun.misc.Launcher$ExtClassLoader中以Java代码的形式实现的)：负责加载 JAVA_HOME\lib\ext 目录中的，或通过 java.ext.dirs 系统变量指定路径中的类库。
-3. 应用程序类加载器(Application ClassLoader，由sun.misc.Launcher$AppClassLoader实现)：由于应用程序类加载器是ClassLoader类中的`getSystemClassLoader()`方法的返回值，所以有些场合中也称它为“系统类加载器”。它负责加载用户类路径（ClassPath）上所有的类库，开发者同样可以直接在代码中使用这个类加载器。
+3. 应用程序类加载器(Application ClassLoader，由sun.misc.Launcher$AppClassLoader实现)：负责加载用户路径（classpath）上的类库，由于应用程序类加载器是ClassLoader类中的`getSystemClassLoader()`方法的返回值，所以有些场合中也称它为“系统类加载器”。它负责加载用户类路径（ClassPath）上所有的类库，开发者同样可以直接在代码中使用这个类加载器。
 
 #### 双亲委派原则参考代码
 
@@ -506,7 +542,19 @@ JVM 通过双亲委派模型进行类的加载，当然我们也可以通过继�
     }
 ```
 
+### 类装载器的层次关系
+
+当执行java.exe程序时，首先确认使用的jre，然后激活jre中的jvm，激活完成之后会首先完成初始化工作，然后就会初始化类装载器，并且形成类装载器的层次体系。如下所示：
+
+<div align=center>
+
+![1589350033984.png](..\images\1589350033984.png)
+
+</div>
+
 ### ClassLoader详解
+
+
 
 ## OSGI（动态模型系统）:模块化系统
 
