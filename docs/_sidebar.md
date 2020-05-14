@@ -59,6 +59,8 @@
   
 - 第四章 数据库
   - MYSQL
+    - MYSQL安装
+      - [Centos7.2离线安装mysql5.7.20](book/database-mysql-install-5.7.20-centos7.2.md)
     - [MYSQL架构](book/database-mysql-架构.md)
     - [MYSQL场景分析](book/database-mysql-场景分析.md)
     - [MYSQL存储引擎](book/database-mysql-存储引擎.md)
