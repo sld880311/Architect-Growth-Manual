@@ -166,7 +166,7 @@
     - [eclipse使用](book/ide-eclipse.md)
     - [JDK环境变量配置](book/ide-jdk.md)
     - [javap详解](book/javap.md)
-    - git
+    - [git](book/git.md)
     - [技术体系](book/technology-system.md)
     - maven
     - visio
