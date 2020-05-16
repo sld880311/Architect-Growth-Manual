@@ -13,6 +13,8 @@
       - [count(字段)](#count%e5%ad%97%e6%ae%b5)
       - [count(*)](#count)
     - [COUNT(DISTINCT expr,[expr...])使用](#countdistinct-exprexpr%e4%bd%bf%e7%94%a8)
+  - [其他](#%e5%85%b6%e4%bb%96)
+    - [阿里规范](#%e9%98%bf%e9%87%8c%e8%a7%84%e8%8c%83)
   - [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
@@ -126,6 +128,16 @@ InnoDB 引擎遍历整张表，但不取值。server 层对于返回的每一行
 <div align=center>
 
 ![1589636581557.png](..\images\1589636581557.png)
+
+</div>
+
+## 其他
+
+### 阿里规范
+
+<div align=center>
+
+![1589636969677.png](..\images\1589636969677.png)
 
 </div>
 
