@@ -7,10 +7,12 @@
     - [count(*)、count(常量）与count(column_name)的区别](#countcount%e5%b8%b8%e9%87%8f%e4%b8%8ecountcolumnname%e7%9a%84%e5%8c%ba%e5%88%ab)
     - [Count(*)优化](#count%e4%bc%98%e5%8c%96)
     - [count(*)与count(1)](#count%e4%b8%8ecount1)
-    - [count(主键 id)](#count%e4%b8%bb%e9%94%ae-id)
-    - [count(1)](#count1)
-    - [count(字段)](#count%e5%ad%97%e6%ae%b5)
-    - [count(*)](#count)
+    - [执行统计原理](#%e6%89%a7%e8%a1%8c%e7%bb%9f%e8%ae%a1%e5%8e%9f%e7%90%86)
+      - [count(主键 id)](#count%e4%b8%bb%e9%94%ae-id)
+      - [count(1)](#count1)
+      - [count(字段)](#count%e5%ad%97%e6%ae%b5)
+      - [count(*)](#count)
+    - [COUNT(DISTINCT expr,[expr...])使用](#countdistinct-exprexpr%e4%bd%bf%e7%94%a8)
   - [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
@@ -94,26 +96,36 @@ MySQL针对不同的存储引擎做了不同的优化，目前常用的存储引
 > InnoDB handles SELECT COUNT(*) and SELECT COUNT(1) operations in the same way. There is no performance difference.
 > 总结：官方说明count(*)与count(1)在性能上是没有差异，建议大家使用count(*)
 
-### count(主键 id)
+### 执行统计原理
+
+#### count(主键 id)
 
 InnoDB 引擎会遍历整张表，把每一行的 id 值都取出来，返回给 server 层。server 层拿到 id 后，判断是不可能为空的，就按行累加。
 
-### count(1)
+#### count(1)
 
 InnoDB 引擎遍历整张表，但不取值。server 层对于返回的每一行，放一个数字“1”进去，判断是不可能为空的，按行累加。单看这两个用法的差别的话，count(1) 执行得要比 count(主键 id) 快。因为从引擎返回 id 会涉及到解析数据行，以及拷贝字段值的操作。
 
-### count(字段)
+#### count(字段)
 
 如果这个“字段”是定义为 not null 的话，一行行地从记录里面读出这个字段，判断不能为 null，按行累加；
 如果这个“字段”定义允许为 null，那么执行的时候，判断到有可能是 null，还要把值取出来再判断一下，不是 null 才累加。
 
-### count(*)
+#### count(*)
 
 并不会把全部字段取出来，而是专门做了优化，不取值。count(*)按行累加。
 
 <div align=center>
 
 ![1589106378967.png](..\images\1589106378967.png)
+
+</div>
+
+### COUNT(DISTINCT expr,[expr...])使用
+
+<div align=center>
+
+![1589636581557.png](..\images\1589636581557.png)
 
 </div>
 
