@@ -1,20 +1,34 @@
 <!-- TOC -->
 
-- [HashMap详解](#hashmap%e8%af%a6%e8%a7%a3)
-  - [概述](#%e6%a6%82%e8%bf%b0)
-  - [Java7的实现方式](#java7%e7%9a%84%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f)
-    - [核心数据结构](#%e6%a0%b8%e5%bf%83%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84)
-    - [Entry静态内部类](#entry%e9%9d%99%e6%80%81%e5%86%85%e9%83%a8%e7%b1%bb)
-    - [整体结构](#%e6%95%b4%e4%bd%93%e7%bb%93%e6%9e%84)
-    - [关键属性](#%e5%85%b3%e9%94%ae%e5%b1%9e%e6%80%a7)
-    - [构造函数](#%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0)
-    - [Put](#put)
-    - [inflateTable、roundUpToPowerOf2](#inflatetablerounduptopowerof2)
-    - [Hash函数](#hash%e5%87%bd%e6%95%b0)
-    - [添加到链表中](#%e6%b7%bb%e5%8a%a0%e5%88%b0%e9%93%be%e8%a1%a8%e4%b8%ad)
-    - [扩容](#%e6%89%a9%e5%ae%b9)
-      - [transfer](#transfer)
-    - [Get](#get)
+- [HashMap详解](#hashmap详解)
+    - [概述](#概述)
+    - [Java7的实现方式](#java7的实现方式)
+        - [核心数据结构](#核心数据结构)
+        - [Entry静态内部类](#entry静态内部类)
+        - [整体结构](#整体结构)
+        - [关键属性](#关键属性)
+        - [构造函数](#构造函数)
+        - [添加数据源码解析](#添加数据源码解析)
+            - [Put](#put)
+            - [inflateTable、roundUpToPowerOf2](#inflatetablerounduptopowerof2)
+            - [添加到链表中](#添加到链表中)
+            - [扩容](#扩容)
+            - [transfer](#transfer)
+        - [Hash函数](#hash函数)
+        - [数据查询](#数据查询)
+            - [get](#get)
+            - [getEntry](#getentry)
+    - [JAVA8](#java8)
+        - [特殊说明](#特殊说明)
+        - [基本属性](#基本属性)
+        - [Hash](#hash)
+        - [查询](#查询)
+            - [红黑树查找](#红黑树查找)
+            - [定位根节点](#定位根节点)
+            - [使用根节点进行find](#使用根节点进行find)
+        - [Put逻辑](#put逻辑)
+            - [红黑树结构维护数据](#红黑树结构维护数据)
+        - [链表转红黑树](#链表转红黑树)
 
 <!-- /TOC -->
 
@@ -128,7 +142,9 @@ public HashMap(int initialCapacity, float loadFactor) {
 }
 ```
 
-### Put
+### 添加数据源码解析
+
+#### Put
 
 ```java
 public V put(K key, V value) {
@@ -162,7 +178,7 @@ public V put(K key, V value) {
 }
 ```
 
-### inflateTable、roundUpToPowerOf2
+#### inflateTable、roundUpToPowerOf2
 
 inflateTable这个方法用于为主干数组table在内存中分配存储空间，通过roundUpToPowerOf2(toSize)可以确保capacity为大于或等于toSize的最接近toSize的二次幂，比如toSize=13,则capacity=16;to_size=16,capacity=16;to_size=17,capacity=32.
 
@@ -191,46 +207,7 @@ private static int roundUpToPowerOf2(int number) {
 }
 ```
 
-### Hash函数
-
-```java
-/**这是一个神奇的函数，用了很多的异或，移位等运算
-* 对key的hashcode进一步进行计算以及二进制位的调整等
-* 来保证最终获取的存储位置尽量分布均匀
-*/
-final int hash(Object k) {
-    int h = hashSeed;
-    if (0 != h && k instanceof String) {
-        return sun.misc.Hashing.stringHash32((String) k);
-    }
-
-    h ^= k.hashCode();
-
-    h ^= (h >>> 20) ^ (h >>> 12);
-    return h ^ (h >>> 7) ^ (h >>> 4);
-}
-```
-
-以上hash函数计算出的值，通过indexFor进一步处理来获取实际的存储位置
-
-```java
-/**
-* 返回数组下标
-*/
-static int indexFor(int h, int length) {
-    return h & (length-1);
-}
-```
-
-**h&（length-1）**保证获取的index一定在数组范围内，举个例子，默认容量16，length-1=15，h=18,转换成二进制计算为index=2。位运算对计算机来说，性能更高一些（HashMap中有大量位运算）  
-所以最终存储位置的确定流程是这样的：
-<div align=center>
-
-![1589102000853.png](..\images\1589102000853.png)
-
-</div>
-
-### 添加到链表中
+#### 添加到链表中
 
 ```java
 void addEntry(int hash, K key, V value, int bucketIndex) {
@@ -247,7 +224,7 @@ void addEntry(int hash, K key, V value, int bucketIndex) {
 
 通过以上代码能够得知，当发生哈希冲突并且size大于阈值的时候，需要进行数组扩容，扩容时，需要新建一个长度为之前数组2倍的新的数组，然后将当前的Entry数组中的元素全部传输过去，扩容后的新数组长度为之前的2倍，所以扩容相对来说是个耗资源的操作。
 
-### 扩容
+#### 扩容
 
 ```java
 void resize(int newCapacity) {
@@ -316,62 +293,111 @@ HashMap的数组长度一定保持2的次幂，比如16的二进制表示为 100
 
 如果不是2的次幂，也就是低位不是全为1此时，要使得index=21，h的低位部分不再具有唯一性了，哈希冲突的几率会变的更大，同时，index对应的这个bit位无论如何不会等于1了，而对应的那些数组位置也就被白白浪费了。
 
-### Get
+### Hash函数
 
+```java
+/**这是一个神奇的函数，用了很多的异或，移位等运算
+* 对key的hashcode进一步进行计算以及二进制位的调整等
+* 来保证最终获取的存储位置尽量分布均匀
+*/
+final int hash(Object k) {
+    int h = hashSeed;
+    if (0 != h && k instanceof String) {
+        return sun.misc.Hashing.stringHash32((String) k);
+    }
+
+    h ^= k.hashCode();
+
+    h ^= (h >>> 20) ^ (h >>> 12);
+    return h ^ (h >>> 7) ^ (h >>> 4);
+}
+```
+
+以上hash函数计算出的值，通过indexFor进一步处理来获取实际的存储位置
+
+```java
+/**
+* 返回数组下标
+*/
+static int indexFor(int h, int length) {
+    return h & (length-1);
+}
+```
+
+**h&（length-1）**保证获取的index一定在数组范围内，举个例子，默认容量16，length-1=15，h=18,转换成二进制计算为index=2。位运算对计算机来说，性能更高一些（HashMap中有大量位运算）  
+所以最终存储位置的确定流程是这样的：
+<div align=center>
+
+![1589102000853.png](..\images\1589102000853.png)
+
+</div>
+
+### 数据查询
+
+#### get
+
+```java
 public V get(Object key) {
-//如果key为null,则直接去table[0]处去检索即可。
-        if (key == null)
-            return getForNullKey();
-        Entry<K,V> entry = getEntry(key);
-        return null == entry ? null : entry.getValue();
- }
+  //如果key为null,则直接去table[0]处去检索即可。
+  if (key == null)
+      return getForNullKey();
+  Entry<K,V> entry = getEntry(key);
+  return null == entry ? null : entry.getValue();
+}
+```
+
 get方法通过key值返回对应value，如果key为null，直接去table[0]处检索。我们再看一下getEntry这个方法。
+
+#### getEntry
+
+```java
 final Entry<K,V> getEntry(Object key) {
-            
-        if (size == 0) {
-            return null;
-        }
-        //通过key的hashcode值计算hash值
-        int hash = (key == null) ? 0 : hash(key);
-        //indexFor (hash&length-1) 获取最终数组索引，然后遍历链表，通过equals方法比对找出对应记录
-        for (Entry<K,V> e = table[indexFor(hash, table.length)];
-             e != null;
-             e = e.next) {
-            Object k;
-            if (e.hash == hash && 
-                ((k = e.key) == key || (key != null && key.equals(k))))
-                return e;
-        }
+    if (size == 0) {
         return null;
-    }    
+    }
+    //通过key的hashcode值计算hash值
+    int hash = (key == null) ? 0 : hash(key);
+    //indexFor (hash&length-1) 获取最终数组索引，然后遍历链表，通过equals方法比对找出对应记录
+    for (Entry<K,V> e = table[indexFor(hash, table.length)];
+          e != null;
+          e = e.next) {
+        Object k;
+        if (e.hash == hash && 
+            ((k = e.key) == key || (key != null && key.equals(k))))
+            return e;
+    }
+    return null;
+}
+```
 
 可以看出，get方法的实现相对简单，key(hashcode)–>hash–>indexFor–>最终索引位置，找到对应位置table[i]，再查看是否有链表，遍历链表，通过key的equals方法比对查找对应的记录。要注意的是，有人觉得上面在定位到数组位置之后然后遍历链表的时候，e.hash == hash这个判断没必要，仅通过equals判断就可以。其实不然，试想一下，如果传入的key对象重写了equals方法却没有重写hashCode，而恰巧此对象定位到这个数组位置，如果仅仅用equals判断可能是相等的，但其hashCode和当前对象不一致，这种情况，根据Object的hashCode的约定，不能返回当前对象，而应该返回null。
 
 在重写equals的方法的时候，必须注意重写hashCode方法，同时还要保证通过equals判断相等的两个对象，调用hashCode方法要返回同样的整数值。而如果equals判断不相等的两个对象，其hashCode可以相同（只不过会发生哈希冲突，应尽量避免）。
 
-1.1.1.1.2	JAVA8
-Java8 对 HashMap 进行了一些修改，最大的不同就是利用了红黑树，所以其由 数组+链表+红黑树 组成。 
-根据 Java7 HashMap 的介绍，我们知道，查找的时候，根据 hash 值我们能够快速定位到数组的具体下标，但是之后的话，需要顺着链表一个个比较下去才能找到我们需要的，时间复杂度取决
-于链表的长度，为 O(n)。为了降低这部分的开销，在 Java8 中，当链表中的元素超过了 8 个以后，会将链表转换为红黑树，在这些位置进行查找的时候可以降低时间复杂度为 O(logN)。 
+## JAVA8
+
+Java8 对 HashMap 进行了一些修改，最大的不同就是利用了**红黑树**，所以其由 **数组+链表+红黑树** 组成。  
+根据 Java7 HashMap 的介绍，我们知道，查找的时候，根据 hash 值我们能够快速定位到数组的具体下标，但是之后的话，需要顺着链表一个个比较下去才能找到我们需要的，时间复杂度取决于链表的长度，为 O(n)。为了降低这部分的开销，在 Java8 中，当链表中的元素超过了 8 个以后，会将链表转换为红黑树，在这些位置进行查找的时候可以降低时间复杂度为 O(logN)。
 <div align=center>
 
 ![1589102119067.png](..\images\1589102119067.png)
 
 </div>
 
-1.1.1.1.1.1	特殊说明
-	源码中的头节点一般是指table表上索引位置的节点，也就是链表的头节点
-	红黑树中的root节点指最上面的节点（没有父节点的节点），但是根节点不一定是索引位置的头节点（也就是链表的头节点），HashMap 通过 moveRootToFront 方法来维持红黑树的根结点就是索引位置的头结点，但是在 removeTreeNode 方法中，当 movable 为 false 时，不会调用 moveRootToFront 方法，此时红黑树的根节点不一定是索引位置的头节点，该场景发生在 HashIterator 的 remove 方法中。
-	转为红黑树节点后，链表的结构还存在，通过 next 属性维持，红黑树节点在进行操作时都会维护链表的结构，
-	在红黑树上，叶子节点也可能有 next 节点，因为红黑树的结构跟链表的结构是互不影响的
-	链表移除操作
+### 特殊说明
+
+1. 源码中的头节点一般是指table表上索引位置的节点，也就是链表的头节点
+2. 红黑树中的root节点指最上面的节点（没有父节点的节点），但是根节点不一定是索引位置的头节点（也就是链表的头节点），HashMap 通过 moveRootToFront 方法来维持红黑树的根结点就是索引位置的头结点，但是在 removeTreeNode 方法中，当 movable 为 false 时，不会调用 moveRootToFront 方法，此时红黑树的根节点不一定是索引位置的头节点，该场景发生在 HashIterator 的 remove 方法中。
+3. 转为红黑树节点后，链表的结构还存在，通过 next 属性维持，红黑树节点在进行操作时都会维护链表的结构，
+4. 在红黑树上，叶子节点也可能有 next 节点，因为红黑树的结构跟链表的结构是互不影响的链表移除操作
+
 <div align=center>
 
 ![1589102145189.png](..\images\1589102145189.png)
 
 </div>
 
-	红黑链表维护结构
+5. 红黑链表维护结构
 
 <div align=center>
 
@@ -379,13 +405,15 @@ Java8 对 HashMap 进行了一些修改，最大的不同就是利用了红黑�
 
 </div>
 
- 
+6. 源码中进行红黑树的查找时，会反复用到以下两条规则：
+   - 如果目标节点的 hash 值小于 p 节点的 hash 值，则向 p 节点的左边遍历；否则向 p 节点的右边遍历。
+   - 如果目标节点的 key 值小于 p 节点的 key 值，则向 p 节点的左边遍历；否则向 p 节点的右边遍历。这两条规则是利用了红黑树的特性（左节点 < 根节点 < 右节点）
+7. 源码中进行红黑树的查找时，会用 dir（direction）来表示向左还是向右查找，dir 存储的值是目标节点的 hash/key 与 p 节点的 hash/key 的比较结果
 
+### 基本属性
 
-	源码中进行红黑树的查找时，会反复用到以下两条规则：1）如果目标节点的 hash 值小于 p 节点的 hash 值，则向 p 节点的左边遍历；否则向 p 节点的右边遍历。2）如果目标节点的 key 值小于 p 节点的 key 值，则向 p 节点的左边遍历；否则向 p 节点的右边遍历。这两条规则是利用了红黑树的特性（左节点 < 根节点 < 右节点）
-	源码中进行红黑树的查找时，会用 dir（direction）来表示向左还是向右查找，dir 存储的值是目标节点的 hash/key 与 p 节点的 hash/key 的比较结果
-1.1.1.1.1.1	基本属性
-/**
+```java
+    /**
      * The default initial capacity - MUST be a power of two.
      * 默认容量，1向左移位4个，00000001变成00010000，
      * 也就是2的4次方为16，使用移位是因为移位是计算机基础运算，效率比加减乘除快。
@@ -528,8 +556,8 @@ Java8 对 HashMap 进行了一些修改，最大的不同就是利用了红黑�
      * 加载因子，定义为可使用的变量
      * @serial
      */
-final float loadFactor;
- /**
+    final float loadFactor;
+    /**
      * Entry for Tree bins. Extends LinkedHashMap.Entry (which in turn
      * extends Node) so can be used as extension of either regular or
      * linked node.
@@ -544,9 +572,14 @@ final float loadFactor;
         TreeNode(int hash, K key, V val, Node<K,V> next) {
             super(hash, key, val, next);
         }
-1.1.1.1.1.2	Hash
+```
+
+### Hash
+
 如何在不遍历链表/红黑树的情况下快速定位原始，可以大大优化查询效率，并且通过hash算法可以使数据均匀分布，尽量减少哈希碰撞。
-/**
+
+```java
+    /**
      * Computes key.hashCode() and spreads (XORs) higher bits of hash
      * to lower.  Because the table uses power-of-two masking, sets of
      * hashes that vary only in bits above the current mask will
@@ -573,11 +606,18 @@ final float loadFactor;
          */
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
+```
+
 拿到元素的hash值之后通过以下方式完成索引定位
+
+```java
 int n = tab.length;
 int index = (n - 1) & hash
-hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系统性能，JDK团队使用位与运算（(table.length -1) & h）来替代模运算。这个优化是基于以下公式：x mod 2^n = x & (2^n - 1)。由于 HashMap 底层数组的长度总是 2 的 n 次方，并且取模运算为 “h mod table.length”，对应上面的公式，可以得到该运算等同于“h & (table.length - 1)”。这是 HashMap 在速度上的优化，因为 & 比 % 具有更高的效率。在 JDK1.8 的实现中，还优化了高位运算的算法，将 hashCode 的高 16 位与 hashCode 进行异或运算，主要是为了在 table 的 length 较小的时候，让高位也参与运算，并且不会有太大的开销。
-举例说明：
+```
+
+hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系统性能，JDK团队使用位与运算（(table.length -1) & h）来替代模运算。这个优化是基于以下公式：x mod 2^n = x & (2^n - 1)。由于 HashMap 底层数组的长度总是 2 的 n 次方，并且取模运算为 “h mod table.length”，对应上面的公式，可以得到该运算等同于“h & (table.length - 1)”。这是 HashMap 在速度上的优化，因为 & 比 % 具有更高的效率。在 JDK1.8 的实现中，还优化了高位运算的算法，将 hashCode 的高 16 位与 hashCode 进行异或运算，主要是为了在 table 的 length 较小的时候，让高位也参与运算，并且不会有太大的开销。  
+
+举例说明：  
 当 table 长度为 16 时，table.length - 1 = 15 ，用二进制来看，此时低 4 位全是 1，高 28 位全是 0，与 0 进行 & 运算必然为 0，因此此时 hashCode 与 “table.length - 1” 的 & 运算结果只取决于 hashCode 的低 4 位，在这种情况下，hashCode 的高 28 位就没有任何作用，并且由于 hash 结果只取决于 hashCode 的低 4 位，hash 冲突的概率也会增加。因此，在 JDK 1.8 中，将高位也参与计算，目的是为了降低 hash 冲突的概率。
 
 <div align=center>
@@ -586,9 +626,9 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
 
 </div>
 
+### 查询
 
-
-1.1.1.1.1.1	查询
+```java
     /**
      * Returns the value to which the specified key is mapped,
      * or {@code null} if this map contains no mapping for the key.
@@ -655,7 +695,11 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
         // 没有查询到数据
         return null;
     }
-红黑树查找：
+```
+
+#### 红黑树查找
+
+```java
         /**
          * Calls find for root node.
          */
@@ -663,7 +707,11 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
         	// 首先获取root节点，然后根据root节点进行find
             return ((parent != null) ? root() : this).find(h, k, null);
         }
-定位根节点：
+```
+
+#### 定位根节点
+
+```java
         /**
          * Returns root of tree containing this node.
          * -- 没有父节点的节点为根节点
@@ -675,7 +723,11 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
                 r = p;
             }
         }
-使用根节点进行find：
+```
+
+#### 使用根节点进行find
+
+```java
         /**
          * Finds the node starting at root p with the given hash and key.
          * The kc argument caches comparableClassFor(key) upon first use
@@ -747,18 +799,16 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
         }
         return null;
     }
+```
 
-
-1.1.1.1.1.2	Put逻辑
+### Put逻辑
 <div align=center>
 
 ![1589102248734.png](..\images\1589102248734.png)
 
 </div>
 
-
-
-
+```java
     /**
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old
@@ -877,7 +927,11 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
         afterNodeInsertion(evict);
         return null;
     }
-红黑树结构维护数据
+```
+
+#### 红黑树结构维护数据
+
+```java
         /**
          * Tree version of putVal.
          * -- 红黑树的put操作，红黑树插入会同时维护原来的链表属性, 即原来的next属性
@@ -979,8 +1033,11 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
                      -1 : 1);
             return d;
         }
+```
 
-1.1.1.1.1.1	链表转红黑树
+### 链表转红黑树
+
+```java
     /**
      * Replaces all linked nodes in bin at index for given hash unless
      * table is too small, in which case resizes instead.
@@ -1031,3 +1088,4 @@ hashmap使用模运算算法均匀分布数据，由于模运算比较消耗系�
     TreeNode<K,V> replacementTreeNode(Node<K,V> p, Node<K,V> next) {
         return new TreeNode<>(p.hash, p.key, p.value, next);
     }
+```

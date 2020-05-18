@@ -36,6 +36,7 @@
         - [Java中的作用域（访问控制）](#java%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
     - [ClassUtils](#classutils)
     - [自定义ClassUtils](#%e8%87%aa%e5%ae%9a%e4%b9%89classutils)
+    - [内省](#%e5%86%85%e7%9c%81)
   - [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
@@ -287,6 +288,8 @@ Field、Method和Constructor类，它们都有一个共同的父类AccessibleObj
 ### 自定义ClassUtils
 
 [ClassUtils代码地址](https://github.com/sld880311/Architect-Growth-Manual/tree/master/docs/book/source/ClassUtils.java)
+
+### 内省
 
 ## 参考
 
