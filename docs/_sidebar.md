@@ -9,6 +9,9 @@
   - [JAVA异常](book/java-exception.md)
   - [JAVA流](book/java-io-nio.md)
   - [JAVA集合](book/java-collection-map.md)
+    - [JAVA集合概述](book/java-collection-map-summary.md)
+    - [JAVA list详解](book/java-collection-map-list.md)
+    - [JAVA hashmap详解](book/java-collection-map-hashmap.md)
   - [JAVA克隆](book/java-clone.md)
   - JAVA工具类分析
     - [解析JAVA中的字符串](book/java-string.md)
