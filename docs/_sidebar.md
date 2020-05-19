@@ -132,6 +132,7 @@
     - [cdn](book/cloud-network-cdn.md)
 - [第12章 数据结构](book/数据结构.md)
 - [第13章 算法](book/算法.md)
+  - [布隆过滤器(BloomFilter)](book/arithmetic-bloomfilter.md)
 - [第14章 Spring](book/spring.md)
 - 第15章 Hibernate
   - [Hibernate对象状态](book/hibernate-object-status.md)
