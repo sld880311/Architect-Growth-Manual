@@ -36,7 +36,9 @@
         - [Java中的作用域（访问控制）](#java%e4%b8%ad%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6)
     - [ClassUtils](#classutils)
     - [自定义ClassUtils](#%e8%87%aa%e5%ae%9a%e4%b9%89classutils)
-    - [内省](#%e5%86%85%e7%9c%81)
+    - [内省Introspector](#%e5%86%85%e7%9c%81introspector)
+      - [内省Introspector类结构](#%e5%86%85%e7%9c%81introspector%e7%b1%bb%e7%bb%93%e6%9e%84)
+      - [简单示例](#%e7%ae%80%e5%8d%95%e7%a4%ba%e4%be%8b)
   - [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
@@ -289,7 +291,115 @@ Field、Method和Constructor类，它们都有一个共同的父类AccessibleObj
 
 [ClassUtils代码地址](https://github.com/sld880311/Architect-Growth-Manual/tree/master/docs/book/source/ClassUtils.java)
 
-### 内省
+### 内省Introspector
+
+一种用于处理javabean的API，提高Java反射的效率
+
+#### 内省Introspector类结构
+
+<div align=center>
+
+![1589936907736.png](..\images\1589936907736.png)
+
+</div>
+
+1. Introspector：获取JavaBean的BeanInfo
+2. BeanInfo：通过getPropertyDescriptors 方法和 getMethodDescriptors 方法可以拿到 javaBean 的字段信息列表和 getter 和 setter 方法信息列表
+3. PropertyDescriptors 可以根据字段直接获得该字段的 getter 和 setter 方法。
+4. MethodDescriptors 可以获得方法的元信息，比如方法名，参数个数，参数字段类型等。
+
+#### 简单示例
+
+```java
+package com.sunld;
+
+import java.beans.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class TestIntrospector {
+    class User{
+        private String userName;
+        private int age;
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+
+        public String findUser(){
+            return "findUser:zhangs : 100age";
+        }
+
+        private String findUser2(){
+            return "findUser2:zhangs : 100age";
+        }
+
+        String findUser3(){
+            return "findUser3:zhangs : 100age";
+        }
+
+        protected String findUser4(){
+            return "findUser4:zhangs : 100age";
+        }
+    }
+
+    public static void main(String[] args) throws IntrospectionException {
+        TestIntrospector t = new TestIntrospector();
+        User u = t.new User();
+        u.setAge(20);
+        u.setUserName("dfafda");
+        // 获取整个Bean的信息
+        // 在Object类时候停止检索，可以选择在任意一个父类停止
+        BeanInfo beanInfo = null;
+        try {
+            // 获取某个对象的BeanInfo信息，并且可以指定上限
+            beanInfo = Introspector.getBeanInfo(User.class, Object.class);
+            System.out.println(beanInfo);
+            System.out.println("所有属性描述：");
+            // 获取所有的属性描述
+            PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
+            for (PropertyDescriptor propertyDescriptor : pds) {
+                System.out.println(propertyDescriptor.getName());
+            }
+            System.out.println("所有方法描述：");
+            for (MethodDescriptor methodDescriptor : beanInfo.getMethodDescriptors()) {
+                System.out.println(methodDescriptor.getName());
+                if(methodDescriptor.getName().startsWith("get")){
+                    Method method = methodDescriptor.getMethod();
+                    System.out.println(method.invoke(u));
+                }
+            }
+            /**
+             * 自定义
+             */
+            String propertyName = "userName";
+            PropertyDescriptor namePd = new PropertyDescriptor(propertyName, User.class);
+
+            System.out.println("名字：" + namePd.getReadMethod().invoke(u));
+            namePd.getWriteMethod().invoke(u, "tom");
+            System.out.println("名字：" + namePd.getReadMethod().invoke(u));
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 ## 参考
 

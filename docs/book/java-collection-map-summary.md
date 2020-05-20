@@ -387,6 +387,12 @@ LinkedHashMap 是 HashMap 的一个子类，保存了记录的插入顺序，在
 
 ## 迭代器Iterator
 
+Iterator是获取集合中元素的过程，实际上帮助获取集合中的元素。
+迭代器代替了 Java Collections Framework 中的 Enumeration。迭代器与枚举有两点不同：
+迭代器允许调用方利用定义良好的语义在迭代期间从迭代器所指向的集合移除元素。
+方法名称得到了改进。
+Iterator 仅有一个子接口ListIterator，是列表迭代器，允许程序员按任一方向遍历列表、迭代期间修改列表，并获得迭代器在列表中的当前位置。 ListIterator 没有当前元素；它的光标位置 始终位于调用 previous() 所返回的元素和调用 next() 所返回的元素之间。在长度为 n 的列表中，有 n+1 个有效的索引值，从 0 到 n（包含）。
+
 ## 排序
 
 ### Comparable 接口
