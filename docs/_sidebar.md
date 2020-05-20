@@ -79,6 +79,9 @@
       - [MYSQL中继日志](book/database-mysql-log-relay.md)
       - [MYSQL日志扩展](book/database-mysql-log-other.md)
     - [MYSQL配置文件详解](book/database-mysql-cnf.md)
+    - [MYSQL账户管理](book/database-mysql-account-manage.md)
+    - [MYSQL数据备份与恢复](book/database-mysql-backup-recovery.md)
+    - [MYSQL高可用](book/database-mysql-high-availability.md)
   - [数据库设计思想](book/database-设计思想.md)
   - [数据库事务](book/database-事务.md)
   - [数据库语法](book/database-语法.md)
@@ -124,7 +127,7 @@
   - 多主机管理
   - 网络
   - 数据管理
-  - 本地环境使用
+  - [其他](book/docker-other.md)
 - 第九章 K8S
 - [第十章 机器学习](book/ml.md)
 - [第11章 云计算](book/cloud.md)
@@ -157,7 +160,9 @@
 - [第30章 Strom](book/strom.md)
 - 第31章 Hadoop
   - [Hadoop说明](book/hadoop.md)
-  - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
+  - Hadoop安装
+    - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
+    - [Hadoop1.X伪分布式安装](book/hadoop-install-1.x.md)
 - 第32章 数据库连接池
 - 第33章 VmWare
 - 第34章 OpenStack
