@@ -39,6 +39,8 @@
     - [内省Introspector](#%e5%86%85%e7%9c%81introspector)
       - [内省Introspector类结构](#%e5%86%85%e7%9c%81introspector%e7%b1%bb%e7%bb%93%e6%9e%84)
       - [简单示例](#%e7%ae%80%e5%8d%95%e7%a4%ba%e4%be%8b)
+    - [org.springframework.beans.BeanUtils](#orgspringframeworkbeansbeanutils)
+    - [instanceof和isInstance区别](#instanceof%e5%92%8cisinstance%e5%8c%ba%e5%88%ab)
   - [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
@@ -306,7 +308,13 @@ Field、Method和Constructor类，它们都有一个共同的父类AccessibleObj
 1. Introspector：获取JavaBean的BeanInfo
 2. BeanInfo：通过getPropertyDescriptors 方法和 getMethodDescriptors 方法可以拿到 javaBean 的字段信息列表和 getter 和 setter 方法信息列表
 3. PropertyDescriptors 可以根据字段直接获得该字段的 getter 和 setter 方法。
-4. MethodDescriptors 可以获得方法的元信息，比如方法名，参数个数，参数字段类型等。
+4. PropertyDescriptor类表示JavaBean类通过存储器导出一个属性。主要方法：
+   - getPropertyType()，获得属性的Class对象
+   - getReadMethod()，获得用于读取属性值的方法；getWriteMethod()，获得用于写入属性值的方法;
+   - hashCode()，获取对象的哈希值;
+   - setReadMethod(Method readMethod)，设置用于读取属性值的方法;
+   - setWriteMethod(Method writeMethod)，设置用于写入属性值的方法。
+5. MethodDescriptors 可以获得方法的元信息，比如方法名，参数个数，参数字段类型等。
 
 #### 简单示例
 
@@ -401,8 +409,165 @@ public class TestIntrospector {
 }
 ```
 
+### org.springframework.beans.BeanUtils
+
+```java
+	/**
+	 * Copy the property values of the given source bean into the given target bean.
+	 * <p>Note: The source and target classes do not have to match or even be derived
+	 * from each other, as long as the properties match. Any bean properties that the
+	 * source bean exposes but the target bean does not will silently be ignored.
+	 * @param source the source bean
+	 * @param target the target bean
+	 * @param editable the class (or interface) to restrict property setting to
+	 * @param ignoreProperties array of property names to ignore
+	 * @throws BeansException if the copying failed
+	 * @see BeanWrapper
+	 */
+	private static void copyProperties(Object source, Object target, @Nullable Class<?> editable,
+			@Nullable String... ignoreProperties) throws BeansException {
+
+		Assert.notNull(source, "Source must not be null");
+		Assert.notNull(target, "Target must not be null");
+
+		/**
+		 * 获取目标对象的class
+		 */
+		Class<?> actualEditable = target.getClass();
+		if (editable != null) {
+			if (!editable.isInstance(target)) {
+				throw new IllegalArgumentException("Target class [" + target.getClass().getName() +
+						"] not assignable to Editable class [" + editable.getName() + "]");
+			}
+			actualEditable = editable;
+		}
+		/**
+		 * 获取目标对象的属性信息
+		 */
+		PropertyDescriptor[] targetPds = getPropertyDescriptors(actualEditable);
+		/**
+		 * 处理忽略属性
+		 */
+		List<String> ignoreList = (ignoreProperties != null ? Arrays.asList(ignoreProperties) : null);
+
+		for (PropertyDescriptor targetPd : targetPds) {
+			Method writeMethod = targetPd.getWriteMethod();
+			if (writeMethod != null && (ignoreList == null || !ignoreList.contains(targetPd.getName()))) {
+				PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), targetPd.getName());
+				if (sourcePd != null) {
+					Method readMethod = sourcePd.getReadMethod();
+					if (readMethod != null &&
+							ClassUtils.isAssignable(writeMethod.getParameterTypes()[0], readMethod.getReturnType())) {
+						try {
+							if (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) {
+								readMethod.setAccessible(true);
+							}
+							Object value = readMethod.invoke(source);
+							if (!Modifier.isPublic(writeMethod.getDeclaringClass().getModifiers())) {
+								writeMethod.setAccessible(true);
+							}
+							writeMethod.invoke(target, value);
+						}
+						catch (Throwable ex) {
+							throw new FatalBeanException(
+									"Could not copy property '" + targetPd.getName() + "' from source to target", ex);
+						}
+					}
+				}
+			}
+		}
+	}
+```
+
+### instanceof和isInstance区别
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#bbb;border-spacing:0;}
+.tg td{background-color:#E0FFEB;border-color:#bbb;border-style:solid;border-width:1px;color:#594F4F;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{background-color:#9DE0AD;border-color:#bbb;border-style:solid;border-width:1px;color:#493F3F;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-0pky">用法</th>
+    <th class="tg-0pky">功能</th>
+    <th class="tg-0pky">对象本身</th>
+    <th class="tg-0pky">父类/接口</th>
+    <th class="tg-0pky">Object</th>
+    <th class="tg-0lax">null</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-0pky">obj instanceof class</td>
+    <td class="tg-0pky">判断对象是否是某个类型</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0lax">false</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">class.isInstance(obj)</td>
+    <td class="tg-0pky">判断对象是否可以转换为这个类</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0pky">true</td>
+    <td class="tg-0lax">false</td>
+  </tr>
+</tbody>
+</table>
+
+```java
+package com.sunld;
+
+public class TestInstanceClass {
+
+    class A {
+    }
+
+    class B extends A {
+    }
+
+    public static void main(String[] args){
+        TestInstanceClass t = new TestInstanceClass();
+
+        B b = t.new B();
+        A a = t.new A();
+        A ba = t.new B();
+        System.out.println("1------------");
+        System.out.println(b instanceof B);// true
+        System.out.println(b instanceof A);// true
+        System.out.println(b instanceof Object);// true
+        System.out.println(null instanceof Object);// false
+        System.out.println("2------------");
+        System.out.println(b.getClass().isInstance(b));// true
+        System.out.println(b.getClass().isInstance(a));// false
+        System.out.println("3------------");
+        System.out.println(a.getClass().isInstance(ba));// true
+        System.out.println(b.getClass().isInstance(ba));// true
+        System.out.println(b.getClass().isInstance(null));// false
+        System.out.println("4------------");
+        System.out.println(A.class.isInstance(a));// true
+        System.out.println(A.class.isInstance(b));// true
+        System.out.println(A.class.isInstance(ba));// true
+        System.out.println("5------------");
+        System.out.println(B.class.isInstance(a));// false
+        System.out.println(B.class.isInstance(b));// true
+        System.out.println(B.class.isInstance(ba));// true
+        System.out.println("6------------");
+        System.out.println(Object.class.isInstance(b));// true
+        System.out.println(Object.class.isInstance(null));// false
+    }
+}
+```
+
 ## 参考
 
 1. [深入理解Java类型信息(Class对象)与反射机制](https://blog.csdn.net/javazejian/article/details/70768369)
 2. 《Java并发编程的艺术》
 3. 《深入理解Java虚拟机》
+4. [Java中instanceof和isInstance区别详解](https://www.cnblogs.com/greatfish/p/6096038.html)

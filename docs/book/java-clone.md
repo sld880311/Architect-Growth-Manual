@@ -1,17 +1,18 @@
 <!-- TOC -->
 
-- [JAVA克隆（Clone）](#java克隆clone)
-    - [java.lang.Cloneable](#javalangcloneable)
-    - [java.lang.Object.clone()](#javalangobjectclone)
-    - [实现方式](#实现方式)
-        - [测试代码准备](#测试代码准备)
-        - [直接赋值](#直接赋值)
-        - [浅复制（复制引用但不复制引用的对象）](#浅复制复制引用但不复制引用的对象)
-        - [深复制（复制对象和其应用对象）](#深复制复制对象和其应用对象)
-        - [序列化（深 clone 一中实现）](#序列化深-clone-一中实现)
-            - [实现deepclone](#实现deepclone)
-        - [反射（深复制一种）](#反射深复制一种)
-    - [参考](#参考)
+- [JAVA克隆（Clone）](#java%e5%85%8b%e9%9a%86clone)
+	- [java.lang.Cloneable](#javalangcloneable)
+	- [java.lang.Object.clone()](#javalangobjectclone)
+	- [实现方式](#%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f)
+		- [测试代码准备](#%e6%b5%8b%e8%af%95%e4%bb%a3%e7%a0%81%e5%87%86%e5%a4%87)
+		- [直接赋值](#%e7%9b%b4%e6%8e%a5%e8%b5%8b%e5%80%bc)
+		- [浅复制（复制引用但不复制引用的对象）](#%e6%b5%85%e5%a4%8d%e5%88%b6%e5%a4%8d%e5%88%b6%e5%bc%95%e7%94%a8%e4%bd%86%e4%b8%8d%e5%a4%8d%e5%88%b6%e5%bc%95%e7%94%a8%e7%9a%84%e5%af%b9%e8%b1%a1)
+		- [深复制（复制对象和其应用对象）](#%e6%b7%b1%e5%a4%8d%e5%88%b6%e5%a4%8d%e5%88%b6%e5%af%b9%e8%b1%a1%e5%92%8c%e5%85%b6%e5%ba%94%e7%94%a8%e5%af%b9%e8%b1%a1)
+		- [序列化（深 clone 一中实现）](#%e5%ba%8f%e5%88%97%e5%8c%96%e6%b7%b1-clone-%e4%b8%80%e4%b8%ad%e5%ae%9e%e7%8e%b0)
+			- [实现deepclone](#%e5%ae%9e%e7%8e%b0deepclone)
+		- [反射（深复制一种）](#%e5%8f%8d%e5%b0%84%e6%b7%b1%e5%a4%8d%e5%88%b6%e4%b8%80%e7%a7%8d)
+			- [org.springframework.beans.BeanUtils](#orgspringframeworkbeansbeanutils)
+	- [参考](#%e5%8f%82%e8%80%83)
 
 <!-- /TOC -->
 # JAVA克隆（Clone）
@@ -432,6 +433,76 @@ class SerCloneObject2 implements Serializable{
 ```
 
 ### 反射（深复制一种）
+
+#### org.springframework.beans.BeanUtils
+
+```java
+	/**
+	 * Copy the property values of the given source bean into the given target bean.
+	 * <p>Note: The source and target classes do not have to match or even be derived
+	 * from each other, as long as the properties match. Any bean properties that the
+	 * source bean exposes but the target bean does not will silently be ignored.
+	 * @param source the source bean
+	 * @param target the target bean
+	 * @param editable the class (or interface) to restrict property setting to
+	 * @param ignoreProperties array of property names to ignore
+	 * @throws BeansException if the copying failed
+	 * @see BeanWrapper
+	 */
+	private static void copyProperties(Object source, Object target, @Nullable Class<?> editable,
+			@Nullable String... ignoreProperties) throws BeansException {
+
+		Assert.notNull(source, "Source must not be null");
+		Assert.notNull(target, "Target must not be null");
+
+		/**
+		 * 获取目标对象的class
+		 */
+		Class<?> actualEditable = target.getClass();
+		if (editable != null) {
+			if (!editable.isInstance(target)) {
+				throw new IllegalArgumentException("Target class [" + target.getClass().getName() +
+						"] not assignable to Editable class [" + editable.getName() + "]");
+			}
+			actualEditable = editable;
+		}
+		/**
+		 * 获取目标对象的属性信息
+		 */
+		PropertyDescriptor[] targetPds = getPropertyDescriptors(actualEditable);
+		/**
+		 * 处理忽略属性
+		 */
+		List<String> ignoreList = (ignoreProperties != null ? Arrays.asList(ignoreProperties) : null);
+
+		for (PropertyDescriptor targetPd : targetPds) {
+			Method writeMethod = targetPd.getWriteMethod();
+			if (writeMethod != null && (ignoreList == null || !ignoreList.contains(targetPd.getName()))) {
+				PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), targetPd.getName());
+				if (sourcePd != null) {
+					Method readMethod = sourcePd.getReadMethod();
+					if (readMethod != null &&
+							ClassUtils.isAssignable(writeMethod.getParameterTypes()[0], readMethod.getReturnType())) {
+						try {
+							if (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) {
+								readMethod.setAccessible(true);
+							}
+							Object value = readMethod.invoke(source);
+							if (!Modifier.isPublic(writeMethod.getDeclaringClass().getModifiers())) {
+								writeMethod.setAccessible(true);
+							}
+							writeMethod.invoke(target, value);
+						}
+						catch (Throwable ex) {
+							throw new FatalBeanException(
+									"Could not copy property '" + targetPd.getName() + "' from source to target", ex);
+						}
+					}
+				}
+			}
+		}
+	}
+```
 
 ## 参考
 
