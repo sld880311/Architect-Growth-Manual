@@ -157,6 +157,7 @@
 - [第30章 Strom](book/strom.md)
 - 第31章 Hadoop
   - [Hadoop说明](book/hadoop.md)
+  - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
 - 第32章 数据库连接池
 - 第33章 VmWare
 - 第34章 OpenStack
