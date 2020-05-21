@@ -2,12 +2,19 @@
 
 - [慢查询日志](#慢查询日志)
     - [说明](#说明)
+        - [官方说明](#官方说明)
+    - [慢查询日志相关参数](#慢查询日志相关参数)
     - [查看慢查询日志](#查看慢查询日志)
     - [启动和设置慢查询日志](#启动和设置慢查询日志)
         - [修改配置文件](#修改配置文件)
         - [直接设置属性（通过登录mysql服务器直接定义）](#直接设置属性通过登录mysql服务器直接定义)
         - [超时配置](#超时配置)
-            - [log_quries_not_using_indexes](#log_quries_not_using_indexes)
+        - [log_quries_not_using_indexes](#log_quries_not_using_indexes)
+        - [log_slow_admin_statements](#log_slow_admin_statements)
+        - [log_slow_slave_statements](#log_slow_slave_statements)
+        - [参数--log-short-format](#参数--log-short-format)
+        - [查询有多少条慢查询记录](#查询有多少条慢查询记录)
+        - [日志记录方式](#日志记录方式)
     - [分析慢查询日志](#分析慢查询日志)
         - [分析工具](#分析工具)
             - [表](#表)
@@ -21,20 +28,84 @@
 
 ## 说明
 
-慢查询日志是用来记录执行时间超过指定时间的查询语句（包括dml和ddl等）。通过慢查询日志，可以查找出哪些查询语句的执行效率很低，以便进行优化。一般建议开启，它对服务器性能的影响微乎其微，但是可以记录mysql服务器上执行了很长时间的查询语句。可以帮助我们定位性能问题的。使用MySQL慢查询日志可以有效的跟踪 执行时间过长 或者 没有使用索引的查询语句。这种包括select 语句，update语句，delete语句，以及insert语句，为优化查询提供帮助。与普通查询日志不同的另一个区别在于，慢查询日志只包含成功执行过的查询语句。
+1. 记录执行时间超过指定时间（long_query_time，默认10s）的查询语句（包括dml和ddl等）
+2. 慢查询日志默认不启动
+3. 慢查询日志支持将日志写入文件或数据库表中
+4. 优点：可以有效的跟踪 执行时间过长 或者 没有使用索引的查询语句（包括select 语句，update语句，delete语句，以及insert语句）
+5. 缺点：存在性能损耗，不建议默认开启
+6. 慢查询日志只包含成功执行过的查询语句
+
+### 官方说明
+
+The slow query log consists of SQL statements that took more than long_query_time seconds to execute and required at least min_examined_row_limit rows to be examined. The minimum and default values of long_query_time are 0 and 10, respectively. The value can be specified to a resolution of microseconds. For logging to a file, times are written including the microseconds part. For logging to tables, only integer times are written; the microseconds part is ignored.  
+
+By default, administrative statements are not logged, nor are queries that do not use indexes for lookups. This behavior can be changed usinglog_slow_admin_statements and log_queries_not_using_indexes, as described later.  
+
+## 慢查询日志相关参数
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#bbb;border-spacing:0;}
+.tg td{background-color:#E0FFEB;border-color:#bbb;border-style:solid;border-width:1px;color:#594F4F;
+  font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{background-color:#9DE0AD;border-color:#bbb;border-style:solid;border-width:1px;color:#493F3F;
+  font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-0lax">&nbsp;&nbsp;&nbsp;属性&nbsp;&nbsp;&nbsp;</th>
+    <th class="tg-0lax">&nbsp;&nbsp;&nbsp;说明&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;slow_query_log&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;是否开启慢查询日志，1表示开启，0表示关闭。&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;log-slow-queries&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;旧版（5.6以下版本）MySQL数据库慢查询日志存储路径。可以不设置该参数，系统则会默认给一个缺省的文件host_name-slow.log&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;slow-query-log-file&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;新版（5.6及以上版本）MySQL数据库慢查询日志存储路径。可以不设置该参数，系统则会默认给一个缺省的文件host_name-slow.log&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;long_query_time&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;慢查询阈值，当查询时间多于设定的阈值时，记录日志&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;log_queries_not_using_indexes&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;未使用索引的查询也被记录到慢查询日志中（可选项）&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;log_output&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">
+        日志存储方式。<br>
+        log_output='FILE'表示将日志存入文件，默认值是'FILE'。<br>
+        log_output='TABLE'表示将日志存入数据库，这样日志信息就会被写入到mysql.slow_log表中。<br>
+        MySQL数据库支持同时两种日志存储方式，配置的时候以逗号隔开即可，如：log_output='FILE,TABLE'。日志记录到系统的专用日志表中，要比记录到文件耗费更多的系统资源，因此对于需要启用慢查询日志，又需要能够获得更高的系统性能，那么建议优先记录到文件。<br>
+    </td>
+  </tr>
+</tbody>
+</table>
 
 ## 查看慢查询日志
 
 ```sql
-show global variables like '%slow%';
+mysql> show variables like '%slow%';
++---------------------------+----------------+
+| Variable_name             | Value          |
++---------------------------+----------------+
+| log_slow_admin_statements | OFF            |
+| log_slow_slave_statements | OFF            |
+| slow_launch_time          | 2              |
+| slow_query_log            | ON             |
+| slow_query_log_file       | SUNLD-slow.log |
++---------------------------+----------------+
+5 rows in set, 1 warning (0.03 sec)
 ```
-
-<div align=center>
-
-![1589444344246.png](..\images\1589444344246.png)
-
-</div>
-输出方式如果为file，需要定义日志路径如上图所示。
 
 ## 启动和设置慢查询日志
 
@@ -46,28 +117,48 @@ show global variables like '%slow%';
 ![1589444455739.png](..\images\1589444455739.png)
 
 </div>
+
+```conf
+#修改配置文件my.cnf
+slow_query_log =1
+slow_query_log_file=/var/lib/mysql/mysql-slow-query-new.log
+```
+
 文件定义说明：log-slow-queries [=  DIR/[filename] ]  
 
 其中，DIR参数指定慢查询日志的存储路径；filename参数指定日志的文件名，生成日志文件的完成名称为filename-slow.log。如果不指定存储路径，慢查询日志默认存储到mysql数据库的数据文件下，如果不指定文件名，默认文件名为hostname-slow.log。
 
 ### 直接设置属性（通过登录mysql服务器直接定义）
 
-首先要有全局权限；然后执行mysql>set global（session） slow_query_log=1;
+```bash
+set global slow_query_log=0;
+set global slow_query_log=1;
+set global slow_query_log_file='/var/lib/mysql/mysql-slow-query-new.log';
+```
 
 ### 超时配置
 
 一般都是通过long_query_time选项来设置这个时间值，时间以秒为单位，可以精确到微秒（可以精确到小数点后6位(微秒)）。如果查询时间超过了这个时间值（默认为10秒），这个查询语句将被记录到慢查询日志中。查看服务器默认时间值方式如下：
-<div align=center>
 
-![1589444539188.png](..\images\1589444539188.png)
+```sql
+mysql> show variables like '%long_query_time%';
++-----------------+-----------+
+| Variable_name   | Value     |
++-----------------+-----------+
+| long_query_time | 10.000000 |
++-----------------+-----------+
+1 row in set, 1 warning (0.00 sec)
+```
 
-</div>
+> 1. 注意：其中这个慢查询时间并不是只表示语句自身执行超过10秒还包含由于其他资源被征用造成阻塞的查询执行时间或其他原因等都被记录到慢查询中。所以这个慢查的时长表示从查询开始到查询结束中间包含可能的任何原因所经历的所有时间。  
+> 2. 从MySQL 5.1开始，long_query_time开始以微秒记录SQL语句运行时间，之前仅用秒为单位记录。如果记录到表里面，只会记录整数部分，不会记录微秒部分。  
+> 3. 注意：使用命令 set global long_query_time=4修改后，需要重新连接或新开一个会话才能看到修改值。你用show variables like 'long_query_time'查看是当前会话的变量值，你也可以不用重新连接会话，而是用show global variables like 'long_query_time';  
 
-注意：其中这个慢查询时间并不是只表示语句自身执行超过10秒还包含由于其他资源被征用造成阻塞的查询执行时间或其他原因等都被记录到慢查询中。所以这个慢查的时长表示从查询开始到查询结束中间包含可能的任何原因所经历的所有时间。
+### log_quries_not_using_indexes
 
-#### log_quries_not_using_indexes
+系统变量log-queries-not-using-indexes：未使用索引的查询也被记录到慢查询日志中（可选项）。如果调优的话，建议开启这个选项。另外，开启了这个参数，其实使用full index scan的sql也会被记录到慢查询日志。  
 
-log_quries_not_using_indexes 是否将不使用索引的查询语句记录到慢查询日志中，无论查询速度有多快。
+This option does not necessarily mean that no index is used. For example, a query that uses a full index scan uses an index but would be logged because the index would not limit the number of rows.
 
 ```sql
 mysql> set @@global.log_queries_not_using_indexes=1;
@@ -78,6 +169,96 @@ mysql> show variables like 'log_queries_not_using_indexes';
 +-------------------------------+-------+
 | log_queries_not_using_indexes | ON    |
 +-------------------------------+-------+
+```
+
+### log_slow_admin_statements
+
+系统变量log_slow_admin_statements表示是否将慢管理语句例如ANALYZE TABLE和ALTER TABLE等记入慢查询日志。
+
+```sql
+mysql> show variables like '%log_slow_admin%';
++---------------------------+-------+
+| Variable_name             | Value |
++---------------------------+-------+
+| log_slow_admin_statements | OFF   |
++---------------------------+-------+
+1 row in set, 1 warning (0.02 sec)
+```
+
+### log_slow_slave_statements
+
+By default, a replication slave does not write replicated queries to the slow query log. To change this, use the log_slow_slave_statements system variable.  
+
+When the slow query log is enabled, this variable enables logging for queries that have taken more than long_query_time seconds to execute on the slave. This variable was added in MySQL 5.7.1. Setting this variable has no immediate effect. The state of the variable applies on all subsequent START SLAVE statements.  
+
+```sql
+mysql> show variables like '%log_slow_slave%';
++---------------------------+-------+
+| Variable_name             | Value |
++---------------------------+-------+
+| log_slow_slave_statements | OFF   |
++---------------------------+-------+
+1 row in set, 1 warning (0.02 sec)
+```
+
+### 参数--log-short-format
+
+The server writes less information to the slow query log if you use the --log-short-format option.  
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-0lax">&nbsp;&nbsp;&nbsp;Command-Line Format&nbsp;&nbsp;&nbsp;</th>
+    <th class="tg-0lax">&nbsp;&nbsp;&nbsp;--log-short-format&nbsp;&nbsp;&nbsp;</th>
+    <th class="tg-0lax">&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;Permitted Values&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;Type&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;boolean&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;Default&nbsp;&nbsp;&nbsp;</td>
+    <td class="tg-0lax">&nbsp;&nbsp;&nbsp;FALSE&nbsp;&nbsp;&nbsp;</td>
+  </tr>
+</tbody>
+</table>
+
+### 查询有多少条慢查询记录
+
+```sql
+mysql> show global status like '%slow_queries%';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| Slow_queries  | 0     |
++---------------+-------+
+1 row in set (0.01 sec)
+```
+
+### 日志记录方式
+
+```sql
+mysql> show variables like '%log_output%';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| log_output    | FILE  |
++---------------+-------+
+1 row in set, 1 warning (0.00 sec)
+#设置存储方式
+set global log_output='TABLE';
 ```
 
 ## 分析慢查询日志
@@ -127,29 +308,53 @@ rows_examined表示该SQL执行时实际扫描的记录条数。
 
 ##### 语法
 
-```sql
--s 表示按照何种方式排序
-子选项: c、t、l、r
-c : SQL执行的次数
-t : 执行时间
-l : 锁等待时间
-r : 返回数据条数
-at、al、ar 是对应 t l r 的平均值。
--t :表示返回前 N 条记录。
--g： grep 缩写。包含模糊匹配
+```bash
+mysqldumpslow --help
+Usage: mysqldumpslow [ OPTS... ] [ LOGS... ]
+Parse and summarize the MySQL slow query log. Options are
+  --verbose    verbose
+  --debug      debug
+  --help       write this text to standard output
+  -v           verbose
+  -d           debug
+  -s ORDER     what to sort by (al, at, ar, c, l, r, t), 'at' is default
+                al: average lock time 平均锁定时间
+                ar: average rows sent 平均返回记录
+                at: average query time 平均查询时间
+                 c: count 访问次数
+                 l: lock time 锁定时间
+                 r: rows sent 返回记录
+                 t: query time  查询时间
+  -r           reverse the sort order (largest last instead of first)
+  -t NUM       just show the top n queries
+  -a           don't abstract all numbers to N and strings to 'S'
+  -n NUM       abstract numbers with at least n digits within names
+  -g PATTERN   grep: only consider stmts that include this string
+  -h HOSTNAME  hostname of db server for *-slow.log filename (can be wildcard),
+               default is '*', i.e. match all
+  -i NAME      name of server instance (if using mysql.server startup script)
+  -l           don't subtract lock time from total time
 ```
 
 ##### 示例
 
 ```bash
-//返回访问次数最多的20条SQL语句
+#返回访问次数最多的20条SQL语句
 mysqldumpslow -s c -t 20 mysql-slow-query.log
-//返回return记录数最多的20条SQL语句
+#返回return记录数最多的20条SQL语句
 mysqldumpslow -s r -t 20 mysql-slow-query.log
-//返回含有like的SQL语句
+#返回含有like的SQL语句
 mysqldumpslow -g 'like' -t 20 mysql-slow-query.log
 explain sql statements
 show profile for query num 需要开启profiling
+#得到返回记录集最多的10个SQL。
+mysqldumpslow -s r -t 10 /database/mysql/mysql06_slow.log
+#得到访问次数最多的10个SQL
+mysqldumpslow -s c -t 10 /database/mysql/mysql06_slow.log
+#得到按照时间排序的前10条里面含有左连接的查询语句。
+mysqldumpslow -s t -t 10 -g “left join” /database/mysql/mysql06_slow.log
+#另外建议在使用这些命令时结合 | 和more 使用 ，否则有可能出现刷屏的情况。
+mysqldumpslow -s r -t 20 /mysqldata/mysql/mysql06-slow.log | more
 ```
 
 ## 参考

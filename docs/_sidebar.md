@@ -62,8 +62,6 @@
   
 - 第四章 数据库
   - MYSQL
-    - MYSQL安装
-      - [Centos7.2离线安装mysql5.7.20](book/database-mysql-install-5.7.20-centos7.2.md)
     - [MYSQL架构](book/database-mysql-架构.md)
     - [MYSQL语法分析](book/database-mysql-场景分析.md)
       - [MYSQL Count使用](book/database-mysql-count.md)
@@ -82,6 +80,7 @@
     - [MYSQL账户管理](book/database-mysql-account-manage.md)
     - [MYSQL数据备份与恢复](book/database-mysql-backup-recovery.md)
     - [MYSQL高可用](book/database-mysql-high-availability.md)
+    - [MYSQL show status详解](book/database-mysql-show-status.md)
   - [数据库设计思想](book/database-设计思想.md)
   - [数据库事务](book/database-事务.md)
   - [数据库语法](book/database-语法.md)
@@ -160,9 +159,6 @@
 - [第30章 Strom](book/strom.md)
 - 第31章 Hadoop
   - [Hadoop说明](book/hadoop.md)
-  - Hadoop安装
-    - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
-    - [Hadoop1.X伪分布式安装](book/hadoop-install-1.x.md)
 - 第32章 数据库连接池
 - 第33章 VmWare
 - 第34章 OpenStack
@@ -182,5 +178,11 @@
     - maven
     - visio
     - excel
+    - 安装部署
+      - [Jdk1.6+mysql5.6+tomcat1.6安装](book/linux-install-jdk1.6-mysql5.6-tomcat1.6.md)
+      - [Centos7.2 安装zookeeper3.4.11](book/zookpeer-install-3.4.11-in-centos7.2.md)
+      - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
+      - [Hadoop1.X伪分布式安装](book/hadoop-install-1.x.md)
+      - [Centos7.2离线安装mysql5.7.20](book/database-mysql-install-5.7.20-centos7.2.md)
     - 其他
       - [SpringBoot常用配置参考](book/springboot-config-default.md)
