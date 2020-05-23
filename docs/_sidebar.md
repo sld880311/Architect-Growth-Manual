@@ -128,6 +128,7 @@
   - 数据管理
   - [其他](book/docker-other.md)
 - 第九章 K8S
+  - [K8S常用问题汇总](book/k8s-question-executor.md)
 - [第十章 机器学习](book/ml.md)
 - [第11章 云计算](book/cloud.md)
   - [网络](book/cloud-network.md)
@@ -167,6 +168,7 @@
 - [第36章 分布式缓存](book/分布式缓存.md)
 - [第37章 Cassandra](book/cassandra.md)
 - [第38章 Thrift](book/thrift.md)
+- [第38章 Dubbo](book/dubbo.md)
 
 - 附录
   - 常用工具

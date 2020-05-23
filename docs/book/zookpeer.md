@@ -72,3 +72,13 @@ LOOKING。
 2.	EPHEMERAL：暂时的节点。 
 3.	PERSISTENT_SEQUENTIAL：持久化顺序编号目录节点。 
 4.	EPHEMERAL_SEQUENTIAL：暂时化顺序编号目录节点。 
+
+## 参考
+
+1. [Zookeeper笔记（一）初识Zookeeper](https://yq.aliyun.com/articles/38098?spm=5176.100239.blogcont38274.9.Bx5zlv) 
+2. [Zookeeper原理架构](https://blog.csdn.net/xuxiuning/article/details/51218941) 
+3. [zookeeper原理（转）](https://www.iteye.com/blog/cailin-2014486)  
+4. [Zookeeper的功能以及工作原理](https://www.cnblogs.com/felixzh/p/5869212.html) 
+5. [zookeeper在Dubbo中的作用](https://blog.csdn.net/yzllz001/article/details/68946323)  
+6. [zookeeper和dubbo的关系](https://blog.csdn.net/daiqinge/article/details/51282874) 
+7. [hadoop系列：zookeeper（3）——zookeeper核心原理（事件）](https://blog.csdn.net/yinwenjie/article/details/47685077) 
