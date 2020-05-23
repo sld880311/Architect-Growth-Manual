@@ -36,7 +36,7 @@
   - 线程通信
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
-  - [锁](book/java-thread-锁.md)
+  - [锁](book/java-thread-lock.md)
   - [互斥同步（并发访问）](book/java-thread-互斥同步.md)
   - [线程控制手段](book/java-thread-tools.md)
   - Java线程池
