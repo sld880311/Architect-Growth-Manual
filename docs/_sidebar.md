@@ -21,7 +21,8 @@
     - [JAVA值传递](book/java-pass-by-value.md)
     - [JAVA高效编程](book/java-efficient-programming.md)
 
-- [第二章 JAVA并发编程](book/java-thread-introduction.md)
+- 第二章 JAVA并发编程
+  - [并发编程知识图谱](book/java-thread-introduction.md)
   - [并发编程面临的问题](book/java-thread-context.md)
   - [JAVA内存模型](book/java-memory-modules.md)
   - 线程的基本使用
