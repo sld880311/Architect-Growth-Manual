@@ -1,25 +1,25 @@
 <!-- TOC -->
 
-- [线程的创建](#%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%88%9b%e5%bb%ba)
-	- [通过Thread构建](#%e9%80%9a%e8%bf%87thread%e6%9e%84%e5%bb%ba)
-		- [Thread定义](#thread%e5%ae%9a%e4%b9%89)
-		- [Thread原理（init方法）](#thread%e5%8e%9f%e7%90%86init%e6%96%b9%e6%b3%95)
-		- [示例](#%e7%a4%ba%e4%be%8b)
-	- [通过Runnable构建](#%e9%80%9a%e8%bf%87runnable%e6%9e%84%e5%bb%ba)
-	- [通过ExecutorService、Callable、Future构建](#%e9%80%9a%e8%bf%87executorservicecallablefuture%e6%9e%84%e5%bb%ba)
-		- [Callable JDK定义（泛型返回值V）](#callable-jdk%e5%ae%9a%e4%b9%89%e6%b3%9b%e5%9e%8b%e8%bf%94%e5%9b%9e%e5%80%bcv)
-		- [Callable在JDK中的定义使用(ExecutorService)](#callable%e5%9c%a8jdk%e4%b8%ad%e7%9a%84%e5%ae%9a%e4%b9%89%e4%bd%bf%e7%94%a8executorservice)
-		- [Future说明](#future%e8%af%b4%e6%98%8e)
-		- [示例](#%e7%a4%ba%e4%be%8b-1)
-	- [基于线程池构建](#%e5%9f%ba%e4%ba%8e%e7%ba%bf%e7%a8%8b%e6%b1%a0%e6%9e%84%e5%bb%ba)
-	- [启动线程](#%e5%90%af%e5%8a%a8%e7%ba%bf%e7%a8%8b)
-		- [start源码](#start%e6%ba%90%e7%a0%81)
-		- [线程启动的注意事项](#%e7%ba%bf%e7%a8%8b%e5%90%af%e5%8a%a8%e7%9a%84%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9)
-	- [其他](#%e5%85%b6%e4%bb%96)
-		- [Thread与Runnable](#thread%e4%b8%8erunnable)
-			- [关系](#%e5%85%b3%e7%b3%bb)
-			- [区别](#%e5%8c%ba%e5%88%ab)
-	- [参考](#%e5%8f%82%e8%80%83)
+- [线程的创建](#线程的创建)
+	- [通过Thread构建](#通过thread构建)
+		- [Thread定义](#thread定义)
+		- [Thread原理（init方法）](#thread原理init方法)
+		- [示例](#示例)
+	- [通过Runnable构建](#通过runnable构建)
+	- [通过ExecutorService、Callable、Future构建](#通过executorservicecallablefuture构建)
+		- [Callable JDK定义（泛型返回值V）](#callable-jdk定义泛型返回值v)
+		- [Callable在JDK中的定义使用(ExecutorService)](#callable在jdk中的定义使用executorservice)
+		- [Future说明](#future说明)
+		- [示例](#示例-1)
+	- [基于线程池构建](#基于线程池构建)
+	- [启动线程](#启动线程)
+		- [start源码](#start源码)
+		- [线程启动的注意事项](#线程启动的注意事项)
+	- [其他](#其他)
+		- [Thread与Runnable](#thread与runnable)
+			- [关系](#关系)
+			- [区别](#区别)
+	- [参考](#参考)
 
 <!-- /TOC -->
 
@@ -233,16 +233,27 @@ private void init(ThreadGroup g, Runnable target, String name,
 
 ```java
 package com.sunld.thread;
-public class OneThread extends Thread{
-	@Override
-	public void run() {
-		System.out.println("OneThread.run() by extends Thread");
-	}
-	public static void main(String[] args) {
-		Thread o = new OneThread();
-		o.start();
-	}
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: 基于Thread实现线程的创建
+ * @date : 2020/5/27 18:50
+ */
+public class CreateThreadByThread extends Thread{
+    @Override
+    public void run() {
+        // 需要实现的业务
+        System.out.println("CreateThreadByThread.run() by extends Thread");
+    }
+    public static void main(String[] args) {
+        // 多态创建线程
+        Thread o = new CreateThreadByThread();
+        // 启动线程
+        o.start();
+    }
 }
+// CreateThreadByThread.run() by extends Thread
 ```
 
 1. 通过Thread源码发现（Thread implements Runnable）发现thread其实也是一个实现了runnable接口的一个实例，它代表一个线程的实例，并且，启动线程的唯一方法就是通过Thread类的start()实例方法。start()方法是一个native方法，它将启动一个新线程，并执行run()方法。这种方式实现多线程很简单，通过自己的类直接extend Thread，并复写run()方法，就可以启动新线程并执行自己定义的run()方法。
@@ -252,24 +263,44 @@ public class OneThread extends Thread{
 
 如果自己的类已经 extends 另一个类，就无法直接 extends Thread，此时，可以实现一个 Runnable 接口。
 
+**把【线程】和【任务】（要执行的代码）分开**  
+
+1. Thread 代表线程
+2. Runnable 可运行的任务（线程要执行的代码）
+
 ```java
 package com.sunld.thread;
-public class ThreadRunnable implements Runnable{
-	@Override
-	public void run() {
-		System.out.println("====ThreadRunnable=====Runnable====");
-	}
-	public static void main(String[] args) {
-		//实例化线程
-		Thread t = new Thread(new ThreadRunnable());
-		t.start();
-	}
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: 通过Runnable创建线程，实现业务与线程的解耦
+ * @date : 2020/5/27 18:55
+ */
+public class CreateThreadByRunnable implements Runnable{
+    @Override
+    public void run() {
+        // 实际执行的业务
+        System.out.println("====CreateThreadByRunnable=====Runnable====");
+    }
+    public static void main(String[] args) {
+        // 实例化线程
+        Thread t = new Thread(new CreateThreadByRunnable());
+        // 启动线程
+        t.start();
+
+        // JDK1.8之后的实现
+        Runnable task2 = () -> System.out.println("task2 jdk8");
+        new Thread(task2, "task2").start();
+    }
 }
+//====CreateThreadByRunnable=====Runnable====
+//task2 jdk8
 ```
 
 ## 通过ExecutorService、Callable、Future构建
 
-**解决Thread和Runnable无法返回值的问题（可以通过共享变量实现）。**有返回值的任务必须实现 Callable 接口，类似的，无返回值的任务必须 Runnable 接口。执行Callable 任务后，可以获取一个 Future 的对象，在该对象上调用 get 就可以获取到 Callable 任务返回的 Object 了，再结合线程池接口 ExecutorService 就可以实现传说中有返回结果的多线程了。
+**解决Thread和Runnable无法返回值的问题（可以通过共享变量实现）。** 有返回值的任务必须实现 Callable 接口，类似的，无返回值的任务必须 Runnable 接口。执行Callable 任务后，可以获取一个 Future 的对象，在该对象上调用 get 就可以获取到 Callable 任务返回的 Object 了，再结合线程池接口 ExecutorService 就可以实现传说中有返回结果的多线程了。
 
 ### Callable JDK定义（泛型返回值V）
 
@@ -352,6 +383,42 @@ public class ExecutorsThread {
 			System.out.println(f.get());
 		}
 	}
+}
+```
+
+```java
+package com.sunld.thread;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: TODO
+ * @date : 2020/5/27 19:31
+ */
+public class CreateThreadByFuture {
+
+    public static void main(String[] args) {
+
+//      创建任务对象
+        FutureTask<Integer> thread = new FutureTask<Integer>(() -> {
+            System.out.println("FutureTask====");
+            return 100;
+        });
+
+//      创建并且启动线程
+        new Thread(thread).start();
+        try {
+            // 处理返回值信息
+            System.out.println(thread.get() + "===============");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
 }
 ```
 
@@ -500,6 +567,9 @@ public class Thread implements Runnable {
 1. 可以避免由于Java的单继承特性而带来的局限；
 2. 增强程序的健壮性，代码能够被多个线程共享，代码与数据是独立的；
 3. 适合多个相同程序代码的线程区处理同一资源的情况。
+4. 用 Runnable 更容易与线程池等高级 API 配合
+5. 用 Runnable 让任务类脱离了 Thread 继承体系，更灵活
+6. Thread是把线程和任务合并在了一起，Runnable是把线程和任务分开了
 
 ## 参考
 
