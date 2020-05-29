@@ -14,9 +14,16 @@
       - [yield](#yield)
       - [线程优先级](#线程优先级)
     - [start 与 run 区别](#start-与-run-区别)
+    - [park&unpark](#parkunpark)
 
 <!-- /TOC -->
 # 线程常用方法说明
+
+<div align=center>
+
+![1590711795506.png](..\images\1590711795506.png)
+
+</div>
 
 ## 常用方法汇总
 
@@ -326,6 +333,7 @@ public class TestWaitAndNotify {
 2. 释放对象锁（wait 方法一般用在同步方法或同步代码块中）
 3. 只有等待其他线程通知或被中断后才能返回
 4. 调用 wait()方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池，只有针对此对象调用 notify()方法后本线程才进入对象锁定池准备获取对象锁进入运行状态。
+5. 需要配合synchronized使用
 
 #### sleep
 
@@ -335,6 +343,7 @@ public class TestWaitAndNotify {
 4. 睡眠结束后的线程未必会立刻得到执行
 5. 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
 6. 属于Thread类
+7. 不需要强制配额synchronized使用
 
 #### yield
 
@@ -428,3 +437,29 @@ public class TestThreadRunAndStart {
 }
 ```
 
+### park&unpark
+
+```java
+// 暂停当前线程
+LockSupport.park();
+// 恢复某个线程的运行
+LockSupport.unpark(暂停线程对象)
+```
+
+<div align=center>
+
+![1590712088254.png](..\images\1590712088254.png)
+
+</div>
+
+1. wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而 park，unpark 不必
+2. park & unpark 是以线程为单位来【阻塞】和【唤醒】线程，而 notify 只能随机唤醒一个等待线程，notifyAll是唤醒所有等待线程，就不那么【精确】
+3. park & unpark 可以先 unpark，而 wait & notify 不能先 notify
+
+<div align=center>
+
+![1590712868689.png](..\images\1590712868689.png)
+
+</div>
+
+具体参考：[LockSupport](book/java-locksupport.md)

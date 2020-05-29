@@ -131,6 +131,12 @@ public class Thread implements Runnable {
 }
 ```
 
+<div align=center>
+
+![1590711873784.png](..\images\1590711873784.png)
+
+</div>
+
 通过JDK官方定义可以得出以下结论：
 
 1. 线程是程序中的执行线程，java虚拟机允许应用程序并发的运行多个线程。

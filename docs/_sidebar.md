@@ -22,10 +22,10 @@
     - [JAVA高效编程](book/java-efficient-programming.md)
 
 - 第二章 JAVA并发编程
-  - [并发编程知识图谱](book/java-thread-introduction.md)
-  - [并发编程面临的问题](book/java-thread-context.md)
-  - [JAVA内存模型](book/java-memory-modules.md)
-  - 线程的基本使用
+  - [2.1 并发编程知识图谱](book/java-thread-introduction.md)
+  - [2.2 并发编程面临的问题](book/java-thread-context.md)
+  - [2.3 JAVA内存模型](book/java-memory-modules.md)
+  - 2.4 线程的基本使用
     - [线程概念](book/java-thread-base.md)
     - [线程状态](book/java-thread-status.md)
     - [线程创建](book/java-thread-create.md)
@@ -34,13 +34,17 @@
     - [守护线程](book/java-thread-daemon.md)
     - [守护优先级](book/java-thread-priority.md)
     - [调度方式](book/java-thread-schedule.md)
-  - 线程通信
+  - 2.5 线程通信
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
-  - [锁](book/java-thread-lock.md)
-  - [互斥同步（并发访问）](book/java-thread-互斥同步.md)
-  - [线程控制手段](book/java-thread-tools.md)
-  - Java线程池
+    - [LockSupport](book/java-locksupport.md)
+  - 2.6 Java中的锁
+    - [锁概览](book/java-thread-lock.md)
+    - [synchronized](book/java-thread-synchronized.md)
+    - [ReentrantLock](book/java-thread-reentrantlock.md)
+  - 2.7 [互斥同步（并发访问）](book/java-thread-互斥同步.md)
+  - 2.8 [线程控制手段](book/java-thread-tools.md)
+  - 2.9 Java线程池
     - [Java线程池概述](book/java-threadpools.md)
     - [Java线程池架构Executor、ExecutorService](book/java-executor-executorservice.md)
     - [ThreadPoolExecutor详解](book/java-thread-pool-executor.md)
@@ -96,7 +100,7 @@
 - 第六章 Linux操作系统
   - 网络
   - 计算
-    - [CPU高速缓存](book/linux-compute-cpu-cache.md)
+    - [CPU高速缓存与内存一致性](book/linux-compute-cpu-cache.md)
   - 存储
     - [零拷贝（Zero-Copy）](book/linux-storage-zero-copy.md)
   - 性能分析

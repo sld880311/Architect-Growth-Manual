@@ -17,6 +17,9 @@
     - [减少上下文切换的方式](#减少上下文切换的方式)
   - [死锁问题](#死锁问题)
     - [避免死锁的方式](#避免死锁的方式)
+    - [死锁定位](#死锁定位)
+  - [活锁问题](#活锁问题)
+  - [饥饿问题](#饥饿问题)
   - [资源限制问题](#资源限制问题)
   - [变量线程安全分析](#变量线程安全分析)
     - [成员变量、类变量](#成员变量类变量)
@@ -119,6 +122,72 @@
 2. ❑ 避免一个线程在锁内同时占用多个资源，尽量保证每个锁只占用一个资源。
 3. ❑ 尝试使用定时锁，使用lock.tryLock（timeout）来替代使用内部锁机制。
 4. ❑ 对于数据库锁，加锁和解锁必须在一个数据库连接里，否则会出现解锁失败的情况。
+5. ❑ 避免死锁要注意加锁顺序
+6. ❑ 如果由于某个线程进入了死循环，导致其它线程一直等待，对于这种情况 linux 下可以通过 top 先定位到CPU 占用高的 Java 进程，再利用 top -Hp 进程id 来定位是哪个线程，最后再用 jstack 排查
+
+
+### 死锁定位
+
+1. 可用工具jconsole工具，或者jps获取线程id在使用jstack定位
+
+## 活锁问题
+
+活锁出现在两个线程互相改变对方的结束条件，最后谁也无法结束。
+
+```java
+package com.sunld.thread;
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: TODO
+ * @date : 2020/5/29 14:01
+ */
+public class TestLiveLock {
+    static volatile  int count = 10;
+    static final Object lock = new Object();
+
+    public static void main(String[] args) {
+        new Thread(() -> {
+            while(count > 0){// 期望0时退出
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                count--;
+                System.out.println("11 count: " + count);
+            }
+        }).start();
+
+        new Thread(() -> {
+            // 期望超过 20 退出循环
+            while (count < 20) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                count++;
+                System.out.println("22 count: " + count);
+            }
+
+        }).start();
+    }
+}
+```
+
+## 饥饿问题
+
+<div align=center>
+
+![1590736135292.png](..\images\1590736135292.png)
+
+![顺序加锁解决方案](..\images\1590736163727.png)
+
+顺序加锁解决方案
+
+</div>
 
 ## 资源限制问题
 

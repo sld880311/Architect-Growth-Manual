@@ -150,6 +150,34 @@ public enum State {
 
 </div>
 
+1. NEW --> RUNNABLE
+   - 当调用 t.start() 方法时，由 NEW --> RUNNABLE
+2. RUNNABLE <--> WAITING
+   -  wait方式（需要synchronized(obj)获取锁）
+      -  释放（obj.notify() ， obj.notifyAll() ， t.interrupt()）
+         -  竞争锁成功，t 线程从 WAITING --> RUNNABLE
+         -  竞争锁失败，t 线程从 WAITING --> BLOCKED  
+   -  join方式（当前线程在t 线程对象的监视器上等待）
+      -  释放：运行结束或调用当前线程的interrupt方法：WAITING --> RUNNABLE
+   -  LockSupport.park方式
+      -  调用unpark(目标线程)或interrupt方法：WAITING --> RUNNABLE
+3. RUNNABLE <--> TIMED_WAITING
+   -  wait(时间)方式（需要synchronized(obj)获取锁）
+      -  释放（obj.notify() ， obj.notifyAll() ， t.interrupt()、或超时）
+         -  竞争锁成功，t 线程从 TIMED_WAITING --> RUNNABLE
+         -  竞争锁失败，t 线程从 TIMED_WAITING --> BLOCKED  
+   -  join(时间)方式（当前线程在t 线程对象的监视器上等待）
+      -  释放：运行结束或调用当前线程的interrupt方法、或超时：TIMED_WAITING --> RUNNABLE
+   -  LockSupport.parkNanos(long nanos) 或 LockSupport.parkUntil(long millis)方式
+      -  调用unpark(目标线程)或interrupt方法、或超时：TIMED_WAITING --> RUNNABLE
+   -  sleep（时间）
+      -  当前线程超时： TIMED_WAITING --> RUNNABLE
+4. RUNNABLE <--> BLOCKED
+   -  t 线程用 synchronized(obj) 获取了对象锁时如果竞争失败，从 RUNNABLE --> BLOCKED
+   -  持 obj 锁线程的同步代码块执行完毕，会唤醒该对象上所有 BLOCKED 的线程重新竞争，如果其中 t 线程竞争成功，从 BLOCKED --> RUNNABLE ，其它失败的线程仍然 BLOCKED
+5. RUNNABLE <--> TERMINATED
+   -  当前线程所有代码运行完毕，进入 TERMINATED
+
 ### 状态说明
 
 #### 特殊说明
