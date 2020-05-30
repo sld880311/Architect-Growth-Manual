@@ -38,13 +38,14 @@
     - [Condition](book/java-condition.md)
     - [ThreadLocal 作用（线程本地存储）-数据隔离](book/java-threadlocal.md)
     - [LockSupport](book/java-locksupport.md)
-  - 2.6 Java中的锁
-    - [锁概览](book/java-thread-lock.md)
+  - 2.6 互斥同步（并发访问）
+    - [Java中的锁](book/java-thread-lock.md)
     - [synchronized](book/java-thread-synchronized.md)
     - [ReentrantLock](book/java-thread-reentrantlock.md)
-  - 2.7 [互斥同步（并发访问）](book/java-thread-互斥同步.md)
-  - 2.8 [线程控制手段](book/java-thread-tools.md)
-  - 2.9 Java线程池
+    - [原子类操作](book/java-thread-atomic.md)
+    - [Java中的CAS](book/java-thread-cas.md)
+  - 2.7 [线程控制手段](book/java-thread-tools.md)
+  - 2.8 Java线程池
     - [Java线程池概述](book/java-threadpools.md)
     - [Java线程池架构Executor、ExecutorService](book/java-executor-executorservice.md)
     - [ThreadPoolExecutor详解](book/java-thread-pool-executor.md)
