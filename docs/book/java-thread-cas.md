@@ -1,52 +1,93 @@
 <!-- TOC -->
 
 - [Java中的cas](#java中的cas)
+  - [无锁的优点（效率高的原因）](#无锁的优点效率高的原因)
+  - [CAS特点](#cas特点)
+  - [具体实现](#具体实现)
+    - [原子类操作](#原子类操作)
+      - [AtomicInteger](#atomicinteger)
+  - [其他](#其他)
+    - [ABA 问题](#aba-问题)
+    - [消除缓存行的伪共享](#消除缓存行的伪共享)
+  - [参考](#参考)
 
 <!-- /TOC -->
 # Java中的cas
 
-1.1.1.5	使用CAS（比较并交换-乐观锁机制-锁自旋）
-如果需要同步的操作执行速度非常快，并且线程竞争并不激烈，这时候使用cas效率会更高，因为加锁会导致线程的上下文切换，如果上下文切换的耗时比同步操作本身更耗时，且线程对资源的竞争不激烈，使用volatiled+cas操作会是非常高效的选择；
-1.1.1.5.1	概念及特性 
-CAS（Compare And Swap/Set）比较并交换，CAS 算法的过程是这样：它包含 3 个参数 CAS(V,E,N)。V 表示要更新的变量(内存值)，E 表示预期值(旧的)，N 表示新值。当且仅当 V 值等于 E 值时，才会将 V 的值设为 N，如果 V 值和 E 值不同，则说明已经有其他线程做了更新，则当前线程什么都不做。最后，CAS 返回当前 V 的真实值。 
-CAS 操作是抱着乐观的态度进行的(乐观锁)，它总是认为自己可以成功完成操作。当多个线程同时使用 CAS 操作一个变量时，只有一个会胜出，并成功更新，其余均会失败。失败的线程不会被挂起，仅是被告知失败，并且允许再次尝试，当然也允许失败的线程放弃操作。基于这样的原理，
-CAS 操作即使没有锁，也可以发现其他线程对当前线程的干扰，并进行恰当的处理。 
-1.1.1.5.2	原子包 java.util.concurrent.atomic（锁自旋） 
-JDK1.5 的原子包：java.util.concurrent.atomic 这个包里面提供了一组原子类。其基本的特性就是在多线程环境下，当有多个线程同时执行这些类的实例包含的方法时，具有排他性，即当某个线程进入方法，执行其中的指令时，不会被其他线程打断，而别的线程就像自旋锁一样，一直等
-到该方法执行完成，才由 JVM 从等待队列中选择一个另一个线程进入，这只是一种逻辑上的理解。 
-相对于对于 synchronized 这种阻塞算法，CAS 是非阻塞算法的一种常见实现。由于一般 CPU 切换时间比 CPU 指令集操作更加长， 所以 J.U.C 在性能上有了很大的提升。如下代码： 
- public class AtomicInteger extends Number implements java.io.Serializable {   
-        private volatile int value;   public final int get() {              return value;   
-     }   
-     public final int getAndIncrement() {   
-        for (;;) {  //CAS 自旋，一直尝试，直达成功 
-           int current = get();               int next = current + 1;               if (compareAndSet(current, next))                   return current;   
-        }   
-    }   
-    public final boolean compareAndSet(int expect, int update) {           return unsafe.compareAndSwapInt(this, valueOffset, expect, update);   
-    }   
-} 
-getAndIncrement 采用了 CAS 操作，每次从内存中读取数据然后将此数据和+1 后的结果进行 CAS 操作，如果成功就返回结果，否则重试直到成功为止。而 compareAndSet 利用 JNI 来完成
-CPU 指令的操作。 
-<div align=center>
+## 无锁的优点（效率高的原因）
 
-![1589108594441.png](..\images\1589108594441.png)
+1. 不会出现上下文切换
+2. 需要额外CPU的支持
 
-</div>
 
- 
- 
-1.1.1.1.1	ABA 问题 
-CAS 会导致“ABA 问题”。CAS 算法实现一个重要前提需要取出内存中某时刻的数据，而在下时刻比较并替换，那么在这个时间差类会导致数据的变化。 
-比如说一个线程 one 从内存位置 V 中取出 A，这时候另一个线程 two 也从内存中取出 A，并且 two 进行了一些操作变成了 B，然后 two 又将 V 位置的数据变成 A，这时候线程 one 进行 CAS 操作发现内存中仍然是 A，然后 one 操作成功。尽管线程 one 的 CAS 操作成功，但是不代表这个过程就是没有问题的。 
-部分乐观锁的实现是通过版本号（version）的方式来解决 ABA 问题，乐观锁每次在执行数据的修改操作时，都会带上一个版本号，一旦版本号和数据的版本号一致就可以执行修改操作并对版本号执行+1 操作，否则就执行失败。因为每次操作的版本号都会随之增加，所以不会出现 ABA 问题，因为版本号只会增加不会减少。
-1.1.1.2	消除缓存行的伪共享
-除了我们在代码中使用的同步锁和jvm自己内置的同步锁外，还有一种隐藏的锁就是缓存行，它也被称为性能杀手。 
-在多核cup的处理器中，每个cup都有自己独占的一级缓存、二级缓存，甚至还有一个共享的三级缓存，为了提高性能，cpu读写数据是以缓存行为最小单元读写的；32位的cpu缓存行为32字节，64位cup的缓存行为64字节，这就导致了一些问题。 
-例如，多个不需要同步的变量因为存储在连续的32字节或64字节里面，当需要其中的一个变量时，就将它们作为一个缓存行一起加载到某个cup-1私有的缓存中（虽然只需要一个变量，但是cpu读取会以缓存行为最小单位，将其相邻的变量一起读入），被读入cpu缓存的变量相当于是对主内存变量的一个拷贝，也相当于变相的将在同一个缓存行中的几个变量加了一把锁，这个缓存行中任何一个变量发生了变化，当cup-2需要读取这个缓存行时，就需要先将cup-1中被改变了的整个缓存行更新回主存（即使其它变量没有更改），然后cup-2才能够读取，而cup-2可能需要更改这个缓存行的变量与cpu-1已经更改的缓存行中的变量是不一样的，所以这相当于给几个毫不相关的变量加了一把同步锁； 
-为了防止伪共享，不同jdk版本实现方式是不一样的： 
-1. 在jdk1.7之前会 将需要独占缓存行的变量前后添加一组long类型的变量，依靠这些无意义的数组的填充做到一个变量自己独占一个缓存行； 
-2. 在jdk1.7因为jvm会将这些没有用到的变量优化掉，所以采用继承一个声明了好多long变量的类的方式来实现； 
-3. 在jdk1.8中通过添加sun.misc.Contended注解来解决这个问题，若要使该注解有效必须在jvm中添加以下参数： 
--XX:-RestrictContended
-sun.misc.Contended注解会在变量前面添加128字节的padding将当前变量与其他变量进行隔离； 
+## CAS特点
+
+**结合CAS+volatile可以实现无锁并发。**
+
+1. 场景：线程数少、多核 CPU 的场景下
+2. CAS基于乐观锁实现思路，synchronized基于悲观锁的思路
+3. CAS 体现的是无锁并发、无阻塞并发（竞争不激烈的前提下）
+4. 概念：Compare And Swap/Set，3 个参数 CAS(V,E,N)。V 表示要更新的变量(内存值)，E 表示预期值(旧的)，N 表示新值。当且仅当 V 值等于 E 值时，才会将 V 的值设为 N，如果 V 值和 E 值不同，则说明已经有其他线程做了更新，则当前线程什么都不做。最后，CAS 返回当前 V 的真实值。 
+
+## 具体实现
+
+### 原子类操作
+
+1. 引入时间：JDK1.5后
+2. 包路径：java.util.concurrent.atomic
+3. 实现原理（锁自旋）：在多线程环境下，当有多个线程同时执行这些类的实例包含的方法时，**具有排他性**，即当某个线程进入方法，执行其中的指令时，不会被其他线程打断，而别的线程就像自旋锁一样，一直等到该方法执行完成，才由 JVM 从等待队列中选择一个另一个线程进入，这只是一种逻辑上的理解。 
+
+#### AtomicInteger
+
+在JDK1.8中使用Unsafe类进行数据处理的实现。
+
+```java
+public class AtomicInteger extends Number implements java.io.Serializable {
+    private static final long serialVersionUID = 6214790243416807050L;
+
+    // setup to use Unsafe.compareAndSwapInt for updates
+    /**
+     * 使用Unsafe.compareAndSwapInt处理数据
+     */
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final long valueOffset;
+
+    static {
+        try {
+            // 使用unsafe设置数据value的偏移地址
+            valueOffset = unsafe.objectFieldOffset
+                (AtomicInteger.class.getDeclaredField("value"));
+        } catch (Exception ex) { throw new Error(ex); }
+    }
+
+    // 保证内存可见性和禁止指令重排序
+    private volatile int value;
+
+   /**
+     * Atomically increments by one the current value.
+     *
+     * @return the previous value
+     */
+    public final int getAndIncrement() {
+        return unsafe.getAndAddInt(this, valueOffset, 1);
+    }
+}
+```
+
+## 其他
+
+### ABA 问题
+
+1. 多个线程操作同一个数据时，数据被修改为A-B-A
+2. 解决方式：使用版本号解决
+
+### 消除缓存行的伪共享
+
+1. cpu中的一级缓存、二级缓存、三级缓存
+2. 禁用 
+   - jdk1.7前会将需要独占缓存行的变量前后添加一组long类型的变量，依靠这些无意义的数组的填充做到一个变量自己独占一个缓存行； 
+   - 在jdk1.7因为jvm会将这些没有用到的变量优化掉，所以采用继承一个声明了好多long变量的类的方式来实现； 
+   - 在jdk1.8中通过添加sun.misc.Contended注解来解决这个问题，若要使该注解有效必须在jvm中添加以下参数： -XX:-RestrictContended
+   - sun.misc.Contended注解会在变量前面添加128字节的padding将当前变量与其他变量进行隔离； 
+
+## 参考

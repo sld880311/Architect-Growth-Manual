@@ -1,81 +1,274 @@
-Java 里面进行多线程通信的主要方式就是共享内存的方式，共享内存主要的关注点有两个：可见性和有序性原子性。Java 内存模型（JMM）解决了可见性和有序性的问题，而锁解决了原子性的问题，理想情况下我们希望做到“同步”和“互斥”。有以下常规实现方法： 
-将数据抽象成一个类，并将数据的操作作为这个类的方法 
-将数据抽象成一个类，并将对这个数据的操作作为这个类的方法，这么设计可以和容易做到同步，只要在方法上加”synchronized“ 
-public class MyData { 
-     private int j=0; public  synchronized void add(){ 
-         j++; 
-System.out.println("线程"+Thread.currentThread().getName()+"j 为："+j); 
-} 
-public  synchronized void dec(){ 
-         j--; 
-      System.out.println("线程"+Thread.currentThread().getName()+"j 为："+j); 
-     } 
-     public int getData(){          return j; 
-     } 
-} 
-public class AddRunnable implements Runnable{ 
-    MyData data;     public AddRunnable(MyData data){         this.data= data; 
-    }  
-    public void run() {             data.add(); 
-     } 
- } 
-public class DecRunnable implements Runnable { 
-    MyData data;     public DecRunnable(MyData data){         this.data = data; 
-    } 
-    public void run() {             data.dec(); 
-    } 
-} 
- public static void main(String[] args) { 
-        MyData data = new MyData(); 
-        Runnable add = new AddRunnable(data);         Runnable dec = new DecRunnable(data);         for(int i=0;i<2;i++){             new Thread(add).start();             new Thread(dec).start(); 
-        } 
-Runnable 对象作为一个类的内部类 
-1.	将 Runnable 对象作为一个类的内部类，共享数据作为这个类的成员变量，每个线程对共享数据的操作方法也封装在外部类，以便实现对数据的各个操作的同步和互斥，作为内部类的各个 Runnable 对象调用外部类的这些方法。 
-public class MyData { 
-     private int j=0;      public  synchronized void add(){          j++; 
-     System.out.println("线程"+Thread.currentThread().getName()+"j 为："+j); 
-     } 
-     public  synchronized void dec(){          j--; 
-      System.out.println("线程"+Thread.currentThread().getName()+"j 为："+j); 
-     } 
-     public int getData(){ 
-         return j; 
-     } 
-} 
-public class TestThread { 
-    public static void main(String[] args) {         final MyData data = new MyData();         for(int i=0;i<2;i++){             new Thread(new Runnable(){                public void run() {                     data.add(); 
-                 } 
-             }).start(); 
-            new Thread(new Runnable(){                  public void run() {                     data.dec();  
-                 } 
-             }).start(); 
-        } 
-    } 
-} 
- 
+<!-- TOC -->
 
+- [Java内存模型详解（JMM）](#java内存模型详解jmm)
+  - [基本概念](#基本概念)
+    - [Java内存模型的抽象结构](#java内存模型的抽象结构)
+    - [happens-before](#happens-before)
+  - [重排序](#重排序)
+  - [顺序一致性](#顺序一致性)
+  - [volatile的内存语义](#volatile的内存语义)
+    - [volatile内存语义的实现](#volatile内存语义的实现)
+      - [内存屏障的使用](#内存屏障的使用)
+    - [死循环代码](#死循环代码)
+  - [锁的内存语义](#锁的内存语义)
+    - [锁的释放、获取](#锁的释放获取)
+    - [锁内存语义实现](#锁内存语义实现)
+  - [final的内存语义](#final的内存语义)
+    - [final域的重排序规则](#final域的重排序规则)
+    - [写final域的重排序规则](#写final域的重排序规则)
+    - [读final域的重排序规则](#读final域的重排序规则)
+    - [final域为引用类型](#final域为引用类型)
+    - [final引用不能从构造函数内“溢出”](#final引用不能从构造函数内溢出)
+  - [参考](#参考)
 
+<!-- /TOC -->
+# Java内存模型详解（JMM）
 
-1.1.1	volatile 关键字的作用（变量可见性、禁止重排序） 
-Java 语言提供了一种稍弱的同步机制，即 volatile 变量，用来确保将变量的更新操作通知到其他线程。volatile 变量具备两种特性，volatile 变量不会被缓存在寄存器或者对其他处理器不可见的地方，因此在读取 volatile 类型的变量时总会返回最新写入的值。 
-变量可见性其一是保证该变量对所有线程可见，这里的可见性指的是当一个线程修改了变量的值，那么新的值对于其他线程是可以立即获取的。 
-禁止重排序 
- volatile 禁止了指令重排。 
-比sychronized 更轻量级的同步锁 
-在访问 volatile 变量时不会执行加锁操作，因此也就不会使执行线程阻塞，因此 volatile 变量是一
-种比 sychronized 关键字更轻量级的同步机制。volatile 适合这种场景：一个变量被多个线程共享，线程直接给这个变量赋值。 
+## 基本概念
+
+Java内存模型，即java memory model，简称JMM，它定义了主存与工作内存的抽象概念，并且底层对应CPU的寄存器、缓存、硬件内存以及CPU指令优化等。
+
+JMM 体现在以下几个方面：
+
+1. **原子性** - 保证指令不会受到线程上下文切换的影响
+2. **可见性** - 保证指令不会受 cpu 缓存的影响
+3. **有序性** - 保证指令不会受 cpu 指令并行优化的影响
+
+java中多线程通信基于共享内存的方式，并且JMM保证了共享内存的可见性和有序性的问题，锁解决了原子性的问题。
+
+### Java内存模型的抽象结构
+
+1. 共享数据：实例域、静态域、数组存储在堆中，线程间共享
+2. 非共享数据：局部变量、方法参数、异常处理器参数
+
 <div align=center>
 
-![1589108822519.png](..\images\1589108822519.png)
+![java内存模型抽象结构示意图](..\images\1590914067946.png)
+java内存模型抽象结构示意图
+
+![线程之间的通信](..\images\1590914160544.png)
+线程之间的通信
+</div>
+
+### happens-before
+
+**happens-before仅仅要求前一个操作（执行的结果）对后一个操作可见；规定了对共享变量的写操作对其它线程的读操作可见，它是可见性与有序性的一套规则总结**
+
+1. ❑ 程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。
+2. ❑ 监视器锁规则：线程解锁 m 之前对变量的写，对于接下来对 m 加锁的其它线程对该变量的读可见
+3. ❑ volatile变量规则：线程对 volatile 变量的写，对接下来其它线程对该变量的读可见
+4. ❑ 线程 start 前对变量的写，对该线程开始后对该变量的读可见
+5. ❑ 线程结束前对变量的写，对其它线程得知它结束后的读可见
+6. ❑ 线程 t1 打断 t2（interrupt）前对变量的写，对于其他线程得知 t2 被打断后对变量的读可见
+7. ❑ 对变量默认值（0，false，null）的写，对其它线程对该变量的读可见
+8. ❑ 传递性：如果A happens-before B，且B happens-before C，那么A happens-before C。
+
+## 重排序
+
+## 顺序一致性
+
+## volatile的内存语义
+
+1. **同步**：一种弱的同步机制，用来确保将变量的更新操作通知到其他线程，Volatile修饰变量的单个读/写，可以看做使用同一个锁完成的同步操作。
+2. 可见性：当一个线程修改了变量的值，那么新的值对于其他线程是可以**立即获取的。**被volatile修饰的变量总会返回最新写入主内存的值
+3. **禁止指令重排序**
+4. **场景**：一个变量被多个线程共享，线程直接给这个变量赋值。
+5. **保证线程安全的前置条件**
+   - 单个读/写
+   - 不同的volatile变量之间，不能互相依赖
+6. **原子性**：只能对原子性（单个读/写）操作具备线程安全性
+7. **原理**：普通变量的获取首先把主内存的数据获取到CPU缓存中，然后通过缓存使用；被volatile修饰的变量JVM保证了每次读变量都从内存中读，跳过 CPU cache 这一步，直接通过主内存获取数据
+8. **Volatile写语义**：当写一个volatile变量时，JMM会把该线程对应的本地内存中的共享变量值刷新到主内存。
+9. **Volatile读语义**：当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主内存中读取共享变量。
+
+### volatile内存语义的实现
+
+<div align=center>
+
+![volatile重排序规则表](..\images\1590929114372.png)
+volatile重排序规则表
+</div>
+
+
+#### 内存屏障的使用
+
+基于保守策略的JMM内存屏障插入策略。  
+1. ❑ 在每个volatile写操作的前面插入一个StoreStore屏障。
+2. ❑ 在每个volatile写操作的后面插入一个StoreLoad屏障。
+3. ❑ 在每个volatile读操作的前面插入一个LoadLoad屏障。
+4. ❑ 在每个volatile读操作的后面插入一个LoadStore屏障
+
+<div align=center>
+
+![volatile写：指令执行顺序示意图](..\images\1590929400626.png)
+volatile写：指令执行顺序示意图
+
+![volatile读：指令执行顺序示意图](..\images\1590929489469.png)
+volatile读：指令执行顺序示意图
+</div>
+
+### 死循环代码
+
+```java
+package com.sunld.thread.jmm;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.lang.Thread.sleep;
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: 不适用Volatile导致的死循环
+ * 不同的CPU可能无法达到演示效果
+ * @date : 2020/5/31 16:05
+ */
+public class VolatileDeadCircleTest {
+    private volatile boolean run = true;
+
+    public static void main(String[] args) throws InterruptedException {
+        VolatileDeadCircleTest t = new VolatileDeadCircleTest();
+        AtomicInteger count = new AtomicInteger();
+        new Thread(() -> {
+            while(t.isRun()){
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("子线程一致执行:" + (count.getAndIncrement()));
+            }
+        }).start();
+        sleep(10 * 1000L);
+        // 计划停止子线程，但是和预期可能不一致，最终会停止
+        t.setRun(false);
+    }
+
+    public boolean isRun() {
+        return run;
+    }
+
+    public void setRun(boolean run) {
+        this.run = run;
+    }
+}
+```
+
+## 锁的内存语义
+
+1. 锁可以让临界区互斥执行
+2. 重要的同步手段
+3. 释放锁的线程向获取同一个锁的线程发送消息（唤醒）
+
+### 锁的释放、获取
+
+```java
+package com.sunld.thread.jmm;
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: TODO
+ * @date : 2020/6/3 17:34
+ */
+public class MonitorExample {
+    int a = 0;
+
+    public synchronized void writer(){ //1
+        a++;                           //2
+    }
+                                       //3
+    public synchronized void reader(){ //4
+        System.out.println(a);         //5
+    }
+                                       //6
+}
+```
+
+<div align=center>
+
+![1591177153382.png](..\images\1591177153382.png)
 
 </div>
 
-当对非 volatile 变量进行读写的时候，每个线程先从内存拷贝变量到 CPU 缓存中。如果计算机有
-多个 CPU，每个线程可能在不同的 CPU 上被处理，这意味着每个线程可以拷贝到不同的 CPU 
-cache 中。而声明变量是 volatile 的，JVM 保证了每次读变量都从内存中读，跳过 CPU cache 这一步。 
-适用场景值得说明的是对 volatile 变量的单次读/写操作可以保证原子性的，如 long 和 double 类型变量，
-但是并不能保证 i++这种操作的原子性，因为本质上 i++是读、写两次操作。在某些场景下可以
-代替 Synchronized。但是,volatile 的不能完全取代 Synchronized 的位置，只有在一些特殊的场景下，才能适用 volatile。总的来说，必须同时满足下面两个条件才能保证在并发环境的线程安全： 
-（1）	对变量的写操作不依赖于当前值（比如 i++），或者说是单纯的变量赋值（boolean flag = true）。 
-（2）	该变量没有包含在具有其他变量的不变式中，也就是说，不同的 volatile 变量之间，不能互相依赖。只有在状态真正独立于程序内其他内容时才能使用 volatile。 
+1. 线程之间使用同一个锁存在先后顺序
+2. 某个方法使用完成之后释放对应的锁，其他线程可竞争获取该锁
+3. synchronized使用的是监视器锁
+4. 锁释放与volatile写有相同的内存语义；锁获取与volatile读有相同的内存语义（释放锁之后会把共享数据刷入主存并且使其他线程的本地内存中的变量无效）
+
+### 锁内存语义实现
+
+
+
+## final的内存语义
+
+对final域的读写更像是普通变量访问。
+
+### final域的重排序规则
+
+1. 在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序。
+2. 初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序。
+
+```java
+package com.sunld.thread.jmm;
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: TODO
+ * @date : 2020/5/31 21:04
+ */
+public class FinalExample {
+    int i;                         // 普通变量
+    final int j;                   // final变量
+    static FinalExample obj;
+    public FinalExample(){         // 构造函数
+        i = 1;                     // 普通变量赋值
+        j = 2;                     // final变量赋值
+    }
+    public static void writer(){   // 写线程A执行
+        obj = new FinalExample();
+    }
+    public static void reader(){   // 读线程B执行
+        FinalExample object = obj; // 读对象引用
+        int a = object.i;          // 读普通变量
+        int b = object.j;          // 读final变量
+    }
+}
+```
+
+### 写final域的重排序规则
+
+1. JMM禁止编译器把final域的写重排序到构造函数之外
+2. 编译器会在final域的写之后，构造函数return之前，插入一个StoreStore屏障。这个屏障禁止处理器把final域的写重排序到构造函数之外。
+3. 在对象引用为任意线程可见之前，对象的final域已经被正确初始化过了，而普通域不具有这个保障
+4. 写final域的重排序规则会要求编译器在final域的写之后，构造函数return之前插入一个StoreStore障屏。读final域的重排序规则要求编译器在读final域的操作前面插入一个LoadLoad屏障。
+
+<div align=center>
+
+![写final域的重排序规则](..\images\1590930859921.png)
+写final域的重排序规则
+</div>
+
+### 读final域的重排序规则
+
+**编译器会在读final域操作的前面插入一个LoadLoad屏障，防止初次读对象引用与初次读该对象包含的final域出现重排序。**    
+
+<div align=center>
+
+![读final域的重排序规则](..\images\1590931029214.png)
+读final域的重排序规则
+</div>
+
+### final域为引用类型
+
+在构造函数内对一个final引用的对象的成员域的写入，与随后在构造函数外把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序。  
+
+### final引用不能从构造函数内“溢出”
+
+在构造函数内部，不能让这个被构造对象的引用为其他线程所见，也就是对象引用不能在构造函数中“逸出”。
+
+## 参考
+
+1. 《Java并发编程的艺术》
 

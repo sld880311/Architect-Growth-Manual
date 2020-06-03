@@ -42,7 +42,6 @@
     - [Java中的锁](book/java-thread-lock.md)
     - [synchronized](book/java-thread-synchronized.md)
     - [ReentrantLock](book/java-thread-reentrantlock.md)
-    - [原子类操作](book/java-thread-atomic.md)
     - [Java中的CAS](book/java-thread-cas.md)
   - 2.7 [线程控制手段](book/java-thread-tools.md)
   - 2.8 Java线程池
