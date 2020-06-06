@@ -10,6 +10,7 @@
       - [正确使用方式](#正确使用方式)
     - [sleep、yield、wait](#sleepyieldwait)
       - [wait](#wait)
+        - [wait为什么需要配合synchronized使用](#wait为什么需要配合synchronized使用)
       - [sleep](#sleep)
       - [yield](#yield)
       - [线程优先级](#线程优先级)
@@ -334,6 +335,23 @@ public class TestWaitAndNotify {
 3. 只有等待其他线程通知或被中断后才能返回
 4. 调用 wait()方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池，只有针对此对象调用 notify()方法后本线程才进入对象锁定池准备获取对象锁进入运行状态。
 5. 需要配合synchronized使用
+
+##### wait为什么需要配合synchronized使用
+
+**防止出现死锁。** 
+
+在wait（）的内部，会先释放锁obj1，然后进入阻塞状态，之后，它被另外一个线程用notify（）唤醒，去重新拿锁！其次，wait（）调用完成后，执行后面的业务逻辑代码，然后退出synchronized同步块，再次释放锁。内部伪代码如下：
+
+```java
+wait(){
+  //释放锁
+  //阻塞，等待被其他线程notify
+  //重新获取锁
+  //处理后续逻辑
+}
+```
+
+wait（）和notify（）所作用的对象和synchronized所作用的对象是同一个，只能有一个对象，无法区分队列空和列队满两个条件。可以通过**Condition**实现（参考：[Condition](book/java-condition.md)）。
 
 #### sleep
 

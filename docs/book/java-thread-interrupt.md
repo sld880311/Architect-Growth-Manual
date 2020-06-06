@@ -1,17 +1,17 @@
 <!-- TOC -->
 
 - [线程中断](#线程中断)
-    - [正常结束(执行完成)](#正常结束执行完成)
-    - [使用退出标志退出线程](#使用退出标志退出线程)
-    - [interrupt方法结束线程](#interrupt方法结束线程)
-        - [Thread中断方法说明](#thread中断方法说明)
-        - [类库中的中断](#类库中的中断)
-        - [中断处理](#中断处理)
-        - [中断响应](#中断响应)
-        - [中断示例](#中断示例)
-    - [stop 方法终止线程（线程不安全）](#stop-方法终止线程线程不安全)
-    - [中断的使用场景](#中断的使用场景)
-    - [参考](#参考)
+  - [正常结束(执行完成)](#正常结束执行完成)
+  - [使用退出标志退出线程](#使用退出标志退出线程)
+  - [interrupt方法结束线程](#interrupt方法结束线程)
+    - [Thread中断方法说明](#thread中断方法说明)
+    - [类库中的中断](#类库中的中断)
+    - [中断处理](#中断处理)
+    - [中断响应](#中断响应)
+    - [中断示例](#中断示例)
+  - [stop 方法终止线程（线程不安全）](#stop-方法终止线程线程不安全)
+  - [中断的使用场景](#中断的使用场景)
+  - [参考](#参考)
 
 <!-- /TOC -->
 
@@ -163,23 +163,34 @@ public void interrupt() {
 
 ```java
 package com.sunld.thread;
-public class ThreadSafe2 extends Thread {
-	public void run() {
-		while (!isInterrupted()) { // 非阻塞过程中通过判断中断标志来退出
-			try {
-				Thread.sleep(5 * 1000);// 阻塞过程捕获中断异常来退出
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				break;// 捕获到异常之后，执行 break 跳出循环
-			}
-		}
-	}
+
+/**
+ * @author : sunliaodong
+ * @version : V1.0.0
+ * @description: TODO
+ * @date : 2020/6/6 20:45
+ */
+public class ThreadSafe2 extends Thread{
+    @Override
+    public void run() {
+        while (!isInterrupted()) { // 非阻塞过程中通过判断中断标志来退出
+            try {
+                Thread.sleep(5 * 1000);// 阻塞过程捕获中断异常来退出
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                break;// 捕获到异常之后，执行 break 跳出循环
+            }
+        }
+    }
 }
+
 ```
 
 ## stop 方法终止线程（线程不安全）
 
-程序中可以直接使用 thread.stop()来强行终止线程，但是 stop 方法是很危险的，就象突然关闭计算机电源，而不是按正常程序关机一样，可能会产生不可预料的结果，不安全主要是： thread.stop()调用之后，创建子线程的线程就会抛出 ThreadDeatherror 的错误，并且会释放子线程所持有的所有锁。一般任何进行加锁的代码块，都是为了保护数据的一致性，如果在调用**thread.stop()后导致了该线程所持有的所有锁的突然释放(不可控制)，**那么被保护数据就有可能呈现不一致性，其他线程在使用这些被破坏的数据时，有可能导致一些很奇怪的应用程序错误。因此，并不推荐使用 stop 方法来终止线程。
+1. stop、destroy方法已经被Java废弃
+2. 原理：强制杀死线程
+3. 不安全原因：thread.stop()调用之后，创建子线程的线程就会抛出 ThreadDeatherror 的错误，并且会释放子线程所持有的所有锁。导致数据不一致等不可控情况
 
 ## 中断的使用场景
 
