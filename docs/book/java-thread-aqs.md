@@ -7,6 +7,12 @@
     - [Sync默认实现非公平锁](#sync默认实现非公平锁)
     - [FairSync.tryAcquire](#fairsynctryacquire)
   - [阻塞队列与唤醒机制](#阻塞队列与唤醒机制)
+    - [AbstractQueuedSynchronizer.addWaiter](#abstractqueuedsynchronizeraddwaiter)
+    - [AbstractQueuedSynchronizer.acquireQueued](#abstractqueuedsynchronizeracquirequeued)
+  - [lock常用方法](#lock常用方法)
+    - [unlock](#unlock)
+    - [lockInterruptibly](#lockinterruptibly)
+    - [tryLock](#trylock)
 
 <!-- /TOC -->
 # AbstractQueuedSynchronizer详解
@@ -152,6 +158,14 @@ public final void acquire(int arg) {
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
         selfInterrupt();
 }
+
+/**
+* Convenience method to interrupt current thread.
+* 当前线程发起中断
+*/
+static void selfInterrupt() {
+    Thread.currentThread().interrupt();
+}
 ```
 
 ### Sync默认实现非公平锁
@@ -219,5 +233,167 @@ public final void acquire(int arg) {
 ```
 
 ## 阻塞队列与唤醒机制
+
+### AbstractQueuedSynchronizer.addWaiter
+
+```java
+/**
+* Creates and enqueues node for current thread and given mode.
+* 把当前线程封装成Node，然后把Node放入双向链表的尾部。
+* 注意：只是把当前线程放入队列，线程本身并未阻塞
+*
+* @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
+* @return the new node
+*/
+private Node addWaiter(Node mode) {
+    Node node = new Node(Thread.currentThread(), mode);
+    // Try the fast path of enq; backup to full enq on failure
+    Node pred = tail;
+    if (pred != null) {
+        node.prev = pred;
+        // 尝试加入队尾，失败之后执行enq(node)
+        if (compareAndSetTail(pred, node)) {
+            pred.next = node;
+            return node;
+        }
+    }
+    enq(node);
+    return node;
+}
+
+/**
+* Inserts node into queue, initializing if necessary. See picture above.
+* @param node the node to insert
+* @return node's predecessor
+*/
+private Node enq(final Node node) {
+    /**
+        * 1. 内部进行队列的初始化，初始化为空的Node
+        * 2. 采用自旋的方式尝试加入队尾，直到成功为止
+        */
+    for (;;) {
+        Node t = tail;
+        if (t == null) { // Must initialize
+            if (compareAndSetHead(new Node()))
+                tail = head;
+        } else {
+            node.prev = t;
+            if (compareAndSetTail(t, node)) {
+                t.next = node;
+                return t;
+            }
+        }
+    }
+}
+```
+
+### AbstractQueuedSynchronizer.acquireQueued
+
+```java
+/**
+* Acquires in exclusive uninterruptible mode for thread already in
+* queue. Used by condition wait methods as well as acquire.
+*
+* 虽然该函数不会中断响应，但它会记录被阻塞期间有没有其他线程向它发送过中断信号。
+* 如果有，则该函数会返回true；否则，返回false。
+* 当返回true则会执行selfInterrupt（自己给自己发起中断信号）
+*
+* @param node the node
+* @param arg the acquire argument
+* @return {@code true} if interrupted while waiting
+*/
+final boolean acquireQueued(final Node node, int arg) {
+    boolean failed = true;
+    try {
+        boolean interrupted = false;
+        for (;;) {
+            // 获取当前节点的上一个节点：Node.prev
+            final Node p = node.predecessor();
+            // 处理头结点，如果是头结点则直接返回false，不响应中断(获取锁)
+            if (p == head && tryAcquire(arg)) {
+                setHead(node);
+                p.next = null; // help GC
+                failed = false;
+                return interrupted;
+            }
+            if (shouldParkAfterFailedAcquire(p, node) &&
+                // 真正阻塞的地方
+                parkAndCheckInterrupt())
+                interrupted = true;
+        }
+    } finally {
+        if (failed)
+            cancelAcquire(node);
+    }
+}
+
+/**
+* Convenience method to park and then check if interrupted
+*
+* @return {@code true} if interrupted
+*/
+private final boolean parkAndCheckInterrupt() {
+    // 阻塞当前线程，直到被其他线程唤醒
+    // 1.其他线程调用了LockSupport.unpark(Thread t)
+    // 2.其他线程调用了t.interrupt（）
+    LockSupport.park(this);
+    // 被唤醒之后，通过Thread.interrupted（）来判断是否被中断唤醒。
+    // 如果是情况1，会返回false；如果是情况2，则返回true
+    return Thread.interrupted();
+}
+```
+
+## lock常用方法
+
+### unlock
+
+AbstractQueuedSynchronizer.release
+
+```java
+/**
+    * Releases in exclusive mode.  Implemented by unblocking one or
+    * more threads if {@link #tryRelease} returns true.
+    * This method can be used to implement method {@link Lock#unlock}.
+    *
+    * @param arg the release argument.  This value is conveyed to
+    *        {@link #tryRelease} but is otherwise uninterpreted and
+    *        can represent anything you like.
+    * @return the value returned from {@link #tryRelease}
+    */
+public final boolean release(int arg) {
+    // 释放锁
+    if (tryRelease(arg)) {
+        Node h = head;
+        if (h != null && h.waitStatus != 0)
+            // 唤醒队列中的后继者
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+```
+
+ReentrantLock.Sync.tryRelease
+
+```java
+protected final boolean tryRelease(int releases) {
+    int c = getState() - releases;
+    // 排它锁实现，否则抛出异常IllegalMonitorStateException
+    if (Thread.currentThread() != getExclusiveOwnerThread())
+        throw new IllegalMonitorStateException();
+    boolean free = false;
+    if (c == 0) {
+        free = true;
+        setExclusiveOwnerThread(null);
+    }
+    // 由于排它锁实现，所以不需要使用cas
+    setState(c);
+    return free;
+}
+```
+
+### lockInterruptibly
+
+### tryLock
 
 

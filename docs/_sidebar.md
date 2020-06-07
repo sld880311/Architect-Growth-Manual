@@ -44,6 +44,8 @@
     - [ReentrantLock](book/java-thread-reentrantlock.md)
     - [AQS](book/java-thread-aqs.md)
     - [Java中的CAS](book/java-thread-cas.md)
+    - [ReentrantReadWriteLock](book/java-thread-read-write-lock.md)
+    - [StampedLock](book/java-thread-stamped-lock.md)
   - 2.7 [线程控制手段](book/java-thread-tools.md)
   - 2.8 Java线程池
     - [Java线程池概述](book/java-threadpools.md)
