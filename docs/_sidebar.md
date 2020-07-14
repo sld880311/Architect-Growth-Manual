@@ -114,6 +114,7 @@
     - [iostat](book/linux-iostat.md)
     - [netstat/ss](book/linux-netstat-ss.md)
     - [vmstat](book/linux-vmstat.md)
+    - [常用性能分析工具](book/linux-performance-analysis-tools.md)
 
 - 第七章 InfluxDB数据库
   - [时序数据库](book/influxdb-时序数据库.md)

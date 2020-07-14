@@ -1,21 +1,21 @@
 <!-- TOC -->
 
-- [TIME_WAIT问题分析](#timewait%e9%97%ae%e9%a2%98%e5%88%86%e6%9e%90)
-  - [TCP协议说明](#tcp%e5%8d%8f%e8%ae%ae%e8%af%b4%e6%98%8e)
-  - [状态说明](#%e7%8a%b6%e6%80%81%e8%af%b4%e6%98%8e)
-    - [LISTENING状态](#listening%e7%8a%b6%e6%80%81)
-    - [ESTABLISHED状态](#established%e7%8a%b6%e6%80%81)
-    - [CLOSE_WAIT](#closewait)
-    - [TIME_WAIT](#timewait)
-    - [SYN_SENT状态](#synsent%e7%8a%b6%e6%80%81)
-  - [状态转换](#%e7%8a%b6%e6%80%81%e8%bd%ac%e6%8d%a2)
-  - [TIME_WAIT配置](#timewait%e9%85%8d%e7%bd%ae)
-    - [windows 机器设置](#windows-%e6%9c%ba%e5%99%a8%e8%ae%be%e7%bd%ae)
-    - [ubuntu机器设置](#ubuntu%e6%9c%ba%e5%99%a8%e8%ae%be%e7%bd%ae)
-  - [查看系统TCP连接资源命令](#%e6%9f%a5%e7%9c%8b%e7%b3%bb%e7%bb%9ftcp%e8%bf%9e%e6%8e%a5%e8%b5%84%e6%ba%90%e5%91%bd%e4%bb%a4)
-  - [TCP协议中有TIME_WAIT这个状态的原因](#tcp%e5%8d%8f%e8%ae%ae%e4%b8%ad%e6%9c%89timewait%e8%bf%99%e4%b8%aa%e7%8a%b6%e6%80%81%e7%9a%84%e5%8e%9f%e5%9b%a0)
-  - [TIME_WAIT造成的影响](#timewait%e9%80%a0%e6%88%90%e7%9a%84%e5%bd%b1%e5%93%8d)
-  - [参考](#%e5%8f%82%e8%80%83)
+- [TIME_WAIT问题分析](#time_wait问题分析)
+  - [TCP协议说明](#tcp协议说明)
+  - [状态说明](#状态说明)
+    - [LISTENING状态](#listening状态)
+    - [ESTABLISHED状态](#established状态)
+    - [CLOSE_WAIT](#close_wait)
+    - [TIME_WAIT](#time_wait)
+    - [SYN_SENT状态](#syn_sent状态)
+  - [状态转换](#状态转换)
+  - [TIME_WAIT配置](#time_wait配置)
+    - [windows 机器设置](#windows-机器设置)
+    - [ubuntu机器设置](#ubuntu机器设置)
+  - [查看系统TCP连接资源命令](#查看系统tcp连接资源命令)
+  - [TCP协议中有TIME_WAIT这个状态的原因](#tcp协议中有time_wait这个状态的原因)
+  - [TIME_WAIT造成的影响](#time_wait造成的影响)
+  - [参考](#参考)
 
 <!-- /TOC -->
 
@@ -55,6 +55,10 @@ SYN_SENT状态表示请求连接，当你要访问其它的计算机的服务时
 <div align=center>
 
 ![TCP状态转换图](..\images\1588043788007.png)
+
+
+![1594448316079.png](..\images\1594448316079.png)
+
 
 </div>
 
