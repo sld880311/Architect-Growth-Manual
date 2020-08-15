@@ -99,6 +99,7 @@
   - 设计原则
   - 设计模式
     - [单例模式](book/pattern-singleton.md)
+  - [重构（改善既有代码的设计）](book/reconsitution.md)
 
 - 第六章 Linux操作系统
   - 网络
@@ -125,7 +126,7 @@
   - [InfluxDB TSM存储引擎之数据写入](book/influxdb-写入.md)
   - [InfluxDB TSM存储引擎之数据读取](book/influxdb-读取.md)
   - [Druid 多维查询之Bitmap索引](book/influxdb-druid.md)
-  - [Influxdb常用脚本和配置](book/influxdb-config.md)
+  - [Influxdb监控数据分析](book/influxdb-monitor.md)
 - [第八章 Docker](book/docker.md)
   - 容器生态系统
   - 容器架构
@@ -136,6 +137,7 @@
   - 网络
   - 数据管理
   - [其他](book/docker-other.md)
+  - [性能数据分析](book/docker-performance.md)
 - 第九章 K8S
   - [K8S常用问题汇总](book/k8s-question-executor.md)
 - [第十章 机器学习](book/ml.md)
