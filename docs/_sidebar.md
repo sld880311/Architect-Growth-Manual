@@ -72,9 +72,11 @@
   - MYSQL
     - [MYSQL架构](book/database-mysql-架构.md)
     - [MYSQL语法分析](book/database-mysql-场景分析.md)
-      - [MYSQL Count使用](book/database-mysql-count.md)
+      - [MYSQL Count原理分析](book/database-mysql-count.md)
+      - [MYSQL update原理分析](book/database-mysql-update.md)
     - [MYSQL存储引擎](book/database-mysql-存储引擎.md)
     - [MYSQL索引](book/database-mysql-index.md)
+    - [MYSQL数据类型与Schema](book/database-mysql-data-type.md)
     - MYSQL日志
       - [MYSQL日志概述](book/database-mysql-log-overview.md)
       - [MYSQL错误日志](book/database-mysql-log-error.md)
@@ -84,7 +86,9 @@
       - [MYSQL事务日志](book/database-mysql-log-redo-undo.md)
       - [MYSQL中继日志](book/database-mysql-log-relay.md)
       - [MYSQL日志扩展](book/database-mysql-log-other.md)
-    - [MYSQL配置文件详解](book/database-mysql-cnf.md)
+    - MYSQL配置优化
+      - [MYSQL配置文件详解](book/database-mysql-cnf.md)
+      - [优化服务器设置](book/database-mysql-cnf-server.md)
     - [MYSQL账户管理](book/database-mysql-account-manage.md)
     - [MYSQL数据备份与恢复](book/database-mysql-backup-recovery.md)
     - [MYSQL高可用](book/database-mysql-high-availability.md)
