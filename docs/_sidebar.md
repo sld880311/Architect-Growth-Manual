@@ -47,7 +47,7 @@
     - [Java中的CAS](book/java-thread-cas.md)
     - [ReentrantReadWriteLock](book/java-thread-read-write-lock.md)
     - [StampedLock](book/java-thread-stamped-lock.md)
-  - 2.7 [线程控制手段](book/java-thread-tools.md)
+  - [2.7 线程控制手段](book/java-thread-tools.md)
   - 2.8 Java线程池
     - [Java线程池概述](book/java-threadpools.md)
     - [Java线程池架构Executor、ExecutorService](book/java-executor-executorservice.md)
@@ -94,7 +94,6 @@
     - [MYSQL数据备份与恢复](book/database-mysql-backup-recovery.md)
     - [MYSQL高可用](book/database-mysql-high-availability.md)
     - [MYSQL show status详解](book/database-mysql-show-status.md)
-  - [数据库设计思想](book/database-设计思想.md)
   - [数据库事务](book/database-事务.md)
   - [数据库语法](book/database-语法.md)
   - [分布式事务](book/database-分布式事务.md)
