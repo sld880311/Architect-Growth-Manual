@@ -1,5 +1,27 @@
+<!-- TOC -->
 
+- [Linux文件系统详解](#linux文件系统详解)
+  - [简介](#简介)
+    - [挂载](#挂载)
+      - [创建一个经过初始化的文件](#创建一个经过初始化的文件)
+      - [文件设备化](#文件设备化)
+      - [在该设备上创建文件系统(ext2)](#在该设备上创建文件系统ext2)
+      - [挂载使用](#挂载使用)
+  - [文件系统结构](#文件系统结构)
+    - [VFS](#vfs)
+    - [superblock](#superblock)
+    - [inode](#inode)
+      - [与block的关系](#与block的关系)
+      - [查看inode信息](#查看inode信息)
+      - [查看文件/目录类型](#查看文件目录类型)
+      - [打开文件的步骤](#打开文件的步骤)
+      - [inode大小](#inode大小)
+    - [dentry](#dentry)
+    - [缓冲区缓存](#缓冲区缓存)
+  - [利用mmap函数实现内存映射的文件拷贝](#利用mmap函数实现内存映射的文件拷贝)
+  - [参考](#参考)
 
+<!-- /TOC -->
 # Linux文件系统详解
 
 ## 简介
@@ -216,6 +238,45 @@ inode也会消耗硬盘空间，所以格式化的时候，操作系统自动将
 ### 缓冲区缓存
 
 除了各个文件系统实现（可以在 ./linux/fs 中找到）之外，文件系统层的底部是缓冲区缓存。这个组件跟踪来自文件系统实现和物理设备（通过设备驱动程序）的读写请求。为了提高效率，Linux 对请求进行缓存，避免将所有请求发送到物理设备。缓存中缓存最近使用的缓冲区（页面），这些缓冲区可以快速提供给各个文件系统。
+
+## 利用mmap函数实现内存映射的文件拷贝
+
+```c
+//本程序的功能是把一个文件映射到
+//内存然后再把内存中的东西利用write函数给输出到标准输出
+//最后利用munmap解除内存映射
+#include<stdio.h>
+#include<sys/mman.h>
+#include<fcntl.h>
+#include<unistd.h>
+int main(int argc,char *argv[])
+{
+    if(argc!=4)
+    {
+         write(STDOUT_FILENO,"hello\n",6);
+         printf("usage:%s \n",argv[0]);
+         return 1;
+    }
+    char *filename=argv[1]; //第二个参数表示文件名
+    printf("the file name to be mapped is :%s\n",filename);
+    int fd=open(filename,O_RDONLY);
+    int offset=atoi(argv[2]); //第三个参数标识要映射时的开始偏移量
+    printf("start offset of file to be mapped is :%d\n",offset);
+    printf("page size is %ld\n",sysconf(_SC_PAGE_SIZE));
+    int realOffset=offset&~(sysconf(_SC_PAGE_SIZE)-1);
+    printf("real start offset of file to be mapped is %d\n",realOffset);
+    int length=atoi(argv[3]); //要映射的文件的长度
+    printf("the length to be map is :%d\n",length);
+    int reallen=length+offset-realOffset; //实际映射的长度
+    printf("the real length to be map is %d\n",reallen);
+    char *addr=mmap(NULL,reallen,PROT_READ,MAP_PRIVATE,fd,realOffset); //有关该函数我们可以使用 //man命令去查看
+    close(fd);
+    write(STDOUT_FILENO,addr,reallen); /*输出到标准输出*/
+    munmap(addr,reallen); //解除内存映射
+    printf("\n");
+    return 0;
+}
+```
 
 ## 参考
 
