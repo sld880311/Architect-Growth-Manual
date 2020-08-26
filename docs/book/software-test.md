@@ -5,7 +5,7 @@
 
 ### 单元测试
 
-1. 软件测试的最基本单元，针对软件中的基本组成部分进程测试，比如一个模块、一个方法；
+1. 软件测试的最基本单元，针对软件中的基本组成部分进行测试，比如一个模块、一个方法；
 2. 目的是验证最小单位的正确性，其正确性依赖详细设计
 3. 主要方法有控制流测试、数据流测试、排错测试、分域测试等等。
 4. 过程：研发整个过程中需要实施，尤其是针对关键核心代码的准确性测试
@@ -43,16 +43,16 @@
 1. 测试越多，额外测试的价值越少。第一个测试最有可能是针对代码**最重要的区域**，因此带来高价值与高风险。当我们为几乎所有事情编写测试后，那些仍然没有测试覆盖的地方很有可能是最不重要和最不可能破坏的。
 <div align=center>
 
-![1597710996282.png](..\images\1597710996282.png)
+![1597710996282.png](../images/1597710996282.png)
 
 </div>
 
 2. 第一个稳态表明编写更多更好的测试不再带来额外的价值。第二个稳态进一步爬升，从我们想法的改变中发现更多的回报（将测试认为是丰富的资源，而不仅仅是验证工具，可以出尽高质量代码的编写和个人思考问题的提升）--**影响生产力**
 <div align=center>
 
-![1597711435963.png](..\images\1597711435963.png)
+![1597711435963.png](../images/1597711435963.png)
 
-![1597717234915.png](..\images\1597717234915.png)
+![1597717234915.png](../images/1597717234915.png)
 单元测试对生产力的影响
 
 </div>
@@ -177,6 +177,108 @@
 18. **限制规则**-当在一些规则下写测试时，记住你的限制和它们（最小和最大）设置成最大的一致性。
 19. **测试类不应该需要配置或者自定义安装**-你的测试类应该能够给任何人使用并且使它运行。“在我的机器上运行”不应该出现在这。
 
+## 基于Python unittest的示例
+
+### 准备测试对象
+
+```python
+# UnitTest/unit_test/course.py
+class CourseManage(object):
+
+    def __init__(self, course):
+        self.course = course
+        self.students = []
+
+    def show_course(self):
+        print("课程:", self.course)
+
+    def add_student(self, name):
+        self.students.append(name)
+
+    def show_students(self):
+        print("所有学员:")
+        for student in self.students:
+            print('-', student)
+```
+
+### 正常使用该对象
+
+```python
+from unit_test.course import CourseManage
+
+course = CourseManage("Python")
+course.show_course()
+print("准备录入学员...")
+print("Enter 'q' at any time to quit.\n")
+while True:
+    resp = input("Student's Name: ")
+    if resp == 'q':
+        break
+    if resp:
+        course.add_student(resp.title())
+print("\n录入完毕...")
+course.show_students()
+```
+
+数据正常输出：
+
+```python
+课程: Python
+准备录入学员...
+Enter 'q' at any time to quit.
+
+Student's Name: oliver queen
+Student's Name: barry allen
+Student's Name: kara
+Student's Name: sara lance
+Student's Name: q
+
+录入完毕...
+所有学员:
+- Oliver Queen
+- Barry Allen
+- Kara
+- Sara Lance
+
+Process finished with exit code 0
+```
+
+### 编写测试用例
+
+```python
+# UnitTest/unit_test/test/test_course.py
+# 添加用户，使用断言assertIn验证
+import unittest
+from unit_test.course import CourseManage
+
+class TestCourseManage(unittest.TestCase):
+
+    def test_add_student(self):
+        course = CourseManage("Python")
+        name = 'snart'
+        course.add_student(name.title())
+        self.assertIn('Snart', course.students)
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+### 常用断言方法
+
+模块在unittest.TestCase类中提供了很多断言方法，之前已经用一个了。下面是6个常用的断言方法：
+1. assertEqual(a, b) ： 核实a == b
+2. assertNotEqual(a, b) ： 核实a != b
+3. assertTrue(x) ： 核实x为True
+4. assertFalse(x) ： 核实x为False
+5. assertIn(item, list) ： 核实item在list中
+6. assertNotIn(item, list) ： 核实item不在list中
+
+### 特殊方法说明
+
+1. setUp()&tearDown()：在每个测试方法（用例）运行时被调用一次
+2. setUp()主要实现测试前的初始化工作，而tearDown()则主要实现测试完成后的垃圾回收等工作 
+3. setUpClass()&tearDownClass(): 全程只调用一次，必须使用@classmethod 装饰器
+
 ## 其他
 
 ### 如何快速推荐单元测试
@@ -185,7 +287,7 @@
 
 <div align=center>
 
-![1597716819955.png](..\images\1597716819955.png)
+![1597716819955.png](../images/1597716819955.png)
 
 </div>
 

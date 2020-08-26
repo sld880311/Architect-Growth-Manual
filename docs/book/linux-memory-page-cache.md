@@ -254,3 +254,4 @@ Linux 3.10.0-1062.9.1.el7.x86_64 (instance-gctg007a) 	08/18/2020 	_x86_64_	(1 CP
 
 1. [proc帮助手册](https://www.kernel.org/doc/Documentation/filesystems/proc.rst)
 2. [常用性能分析工具](linux-performance-analysis-tools.md)
+3. [NIO进阶篇：Page Cache、零拷贝、顺序读写、堆外内存](https://blog.csdn.net/a1240466196/article/details/106456200)

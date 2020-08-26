@@ -1,14 +1,15 @@
 <!-- TOC -->
 
-- [eclipse使用技巧](#eclipse%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7)
-  - [集成javap命令](#%e9%9b%86%e6%88%90javap%e5%91%bd%e4%bb%a4)
-    - [配置](#%e9%85%8d%e7%bd%ae)
-    - [使用](#%e4%bd%bf%e7%94%a8)
-    - [javap的命令说明](#javap%e7%9a%84%e5%91%bd%e4%bb%a4%e8%af%b4%e6%98%8e)
-  - [debug使用技巧](#debug%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7)
-    - [常用快捷键说明](#%e5%b8%b8%e7%94%a8%e5%bf%ab%e6%8d%b7%e9%94%ae%e8%af%b4%e6%98%8e)
-    - [断点属性](#%e6%96%ad%e7%82%b9%e5%b1%9e%e6%80%a7)
-    - [示例](#%e7%a4%ba%e4%be%8b)
+- [eclipse使用技巧](#eclipse使用技巧)
+  - [集成javap命令](#集成javap命令)
+    - [配置](#配置)
+    - [使用](#使用)
+    - [javap的命令说明](#javap的命令说明)
+  - [debug使用技巧](#debug使用技巧)
+    - [常用快捷键说明](#常用快捷键说明)
+    - [断点属性](#断点属性)
+    - [示例](#示例)
+  - [配置@author](#配置author)
 
 <!-- /TOC -->
 # eclipse使用技巧
@@ -90,3 +91,23 @@ public static void main(String args[]) {
  ```
  
 你在(1)处加断点，运行到此处时如果Step Into (also F5)为跳入，则接着执行到(3)。再执行Step Over (also F6)执行本行，则执行到(4)。最后执行Step Return (also F7)，则跳出addDays方法，跳到(2)
+
+## 配置@author
+
+1. eclipse->window->preference->java->code  styple->code template->Code->New Java files 
+
+```java
+点击 Edit 
+${filecomment}
+${package_declaration}
+/**
+* @author 孙辽东
+* @E-mail:sld880311@126.com
+* @qq:767768553
+* @version 创建时间：${date} ${time}
+* 简单说明
+*/
+${typecomment}
+${type_declaration}
+```
+2. 在建立类文件的时候输入“/**”的时候自动出来的：eclipse->window->preference->java->code  styple->code template->comments->typles,点击 Edit ，就可以根据自己需要编写了

@@ -110,8 +110,9 @@
   - 网络
   - 计算
     - [CPU高速缓存与内存一致性](book/linux-compute-cpu-cache.md)
-  - 存储
+  - 文件系统
     - [零拷贝（Zero-Copy）](book/linux-storage-zero-copy.md)
+    - [Linux文件系统详解](book/linux-vfs.md)
   - 内存
     - [page cache](book/linux-memory-page-cache.md)
   - 性能分析
