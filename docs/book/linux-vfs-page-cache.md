@@ -30,7 +30,10 @@
     - [堆外内存](#堆外内存)
       - [堆内存与堆外内存的关系](#堆内存与堆外内存的关系)
       - [最佳实践](#最佳实践)
-  - [PageCache回收导致load飙高](#pagecache回收导致load飙高)
+  - [PageCache内存回收](#pagecache内存回收)
+    - [回收过程](#回收过程)
+    - [避免PageCache回收出现的性能问题](#避免pagecache回收出现的性能问题)
+      - [memory cgroup protection](#memory-cgroup-protection)
     - [出现load过高的原因](#出现load过高的原因)
   - [其他](#其他-1)
     - [清理缓存buffer/cache](#清理缓存buffercache)
@@ -38,12 +41,12 @@
       - [通过修改proc系统的drop_caches清理free的cache](#通过修改proc系统的drop_caches清理free的cache)
       - [可以调用crond定时任务：每10分钟执行一次](#可以调用crond定时任务每10分钟执行一次)
     - [重要配置参数](#重要配置参数)
-      - [/proc/sys/vm/dirty_ratio](#procsysvmdirty_ratio)
-      - [/proc/sys/vm/dirty_background_ratio](#procsysvmdirty_background_ratio)
+      - [/proc/sys/vm/dirty_ratio（同步刷盘）](#procsysvmdirty_ratio同步刷盘)
+      - [/proc/sys/vm/dirty_background_ratio（异步刷盘）](#procsysvmdirty_background_ratio异步刷盘)
       - [/proc/sys/vm/dirty_writeback_centisecs](#procsysvmdirty_writeback_centisecs)
       - [/proc/sys/vm/dirty_expire_centisecs](#procsysvmdirty_expire_centisecs)
       - [/proc/sys/vm/drop_caches](#procsysvmdrop_caches)
-      - [/proc/sys/vm/page-cluster](#procsysvmpage-cluster)
+      - [/proc/sys/vm/page_cluster](#procsysvmpage_cluster)
       - [/proc/sys/vm/swapiness](#procsysvmswapiness)
       - [/proc/sys/vm/vfs_cache_pressure](#procsysvmvfs_cache_pressure)
   - [参考](#参考)
@@ -424,7 +427,33 @@ Linux 3.10.0-1062.9.1.el7.x86_64 (instance-gctg007a) 	08/18/2020 	_x86_64_	(1 CP
 
 </div>
 
-## PageCache回收导致load飙高
+## PageCache内存回收
+
+### 回收过程
+
+在内存紧张的时候会触发内存回收，内存回收会尝试去回收reclaimable（可被回收）的内存。包括**PageCache以及reclaimable kernel memory（比如slab）**。
+
+<div align=center>
+
+![1598493313084.png](..\images\1598493313084.png)
+
+</div>
+
+### 避免PageCache回收出现的性能问题
+
+#### memory cgroup protection
+
+<div align=center>
+
+![1598493920439.png](..\images\1598493920439.png)
+
+</div>
+
+1. **memory.max**：memory cgroup 内的进程最多能够分配的内存，如果不设置的话，就默认不做内存大小的限制
+2. **memory.high**：当 memory cgroup 内进程的内存使用量超过了该值后就会立即被回收掉，目的是为了**尽快的回收掉不活跃的 Page Cache**。
+3. **memory.low**：用来保护重要数据的，当 memory cgroup 内进程的内存使用量低于了该值后，在内存紧张触发回收后就会先去回收不属于该 memory cgroup 的 Page Cache，等到其他的 Page Cache 都被回收掉后再来回收这些 Page Cache。
+4. **memory.min**：用来保护重要数据的，只不过与 memoy.low 有所不同的是，当 memory cgroup 内进程的内存使用量低于该值后，即使其他不在该 memory cgroup 内的 Page Cache 都被回收完了也不会去回收这些 Page Cache。
+5. **总结：如果你想要保护你的 Page Cache 不被回收，你就可以考虑将你的业务进程放在一个 memory cgroup 中，然后设置 memory.{min,low} 来进行保护；与之相反，如果你想要尽快释放你的 Page Cache，那你可以考虑设置 memory.high 来及时的释放掉不活跃的 Page Cache。**
 
 ### 出现load过高的原因
 
@@ -448,6 +477,14 @@ echo 2 > /proc/sys/vm/drop_caches:表示清除回收slab分配器中的对象（
 echo 3 > /proc/sys/vm/drop_caches:表示清除pagecache和slab分配器中的缓存对象。
 ```
 
+可以通过`/proc/vmstat`文件判断是否执行过drop_caches：
+
+```bash
+[root@instance-gctg007a ~]# cat /proc/vmstat | grep drop
+drop_pagecache 0
+drop_slab 0
+```
+
 #### 可以调用crond定时任务：每10分钟执行一次
 
 ```bash
@@ -456,13 +493,13 @@ echo 3 > /proc/sys/vm/drop_caches:表示清除pagecache和slab分配器中的缓
 
 ### 重要配置参数
 
-#### /proc/sys/vm/dirty_ratio
+#### /proc/sys/vm/dirty_ratio（同步刷盘）
 
-这个参数控制文件系统的文件系统写缓冲区的大小，单位是百分比，表示系统内存的百分比，表示当写缓冲使用到系统内存多少的时候，开始向磁盘写出数 据。增大之会使用更多系统内存用于磁盘写缓冲，也可以极大提高系统的写性能。但是，当你需要持续、恒定的写入场合时，应该降低其数值，一般启动上缺省是 10。设1加速程序速度
+这个参数控制文件系统的文件系统写缓冲区的大小，单位是百分比，表示系统内存的百分比，**表示当写缓冲使用到系统内存多少的时候，开始向磁盘写出数据**。增大之会使用更多系统内存用于磁盘写缓冲，也可以极大提高系统的写性能。但是，当你需要持续、恒定的写入场合时，应该降低其数值，一般启动上缺省是 10。设1加速程序速度
 
-#### /proc/sys/vm/dirty_background_ratio
+#### /proc/sys/vm/dirty_background_ratio（异步刷盘）
 
-这个参数控制文件系统的pdflush进程，在何时刷新磁盘。单位是百分比，表示系统内存的百分比，意思是当写缓冲使用到系统内存多少的时 候，pdflush开始向磁盘写出数据。增大之会使用更多系统内存用于磁盘写缓冲，也可以极大提高系统的写性能。但是，当你需要持续、恒定的写入场合时， 应该降低其数值，一般启动上缺省是 5
+这个参数控制文件系统的pdflush进程，在何时刷新磁盘。单位是百分比，**表示系统内存的百分比，意思是当写缓冲使用到系统内存多少的时 候，pdflush开始向磁盘写出数据**。增大之会使用更多系统内存用于磁盘写缓冲，也可以极大提高系统的写性能。但是，当你需要持续、恒定的写入场合时， 应该降低其数值，一般启动上缺省是 5
 
 #### /proc/sys/vm/dirty_writeback_centisecs
 
@@ -476,7 +513,7 @@ echo 3 > /proc/sys/vm/drop_caches:表示清除pagecache和slab分配器中的缓
 
 释放已经使用的cache
 
-#### /proc/sys/vm/page-cluster
+#### /proc/sys/vm/page_cluster
 
 该文件表示在写一次到swap区的时候写入的页面数量，0表示1页，1表示2页，2表示4页。
 
@@ -494,3 +531,5 @@ echo 3 > /proc/sys/vm/drop_caches:表示清除pagecache和slab分配器中的缓
 2. [常用性能分析工具](linux-performance-analysis-tools.md)
 3. [NIO进阶篇：Page Cache、零拷贝、顺序读写、堆外内存](https://blog.csdn.net/a1240466196/article/details/106456200)
 4. [面试官：RocketMQ 如何基于mmap+page cache实现磁盘文件的高性能读写？](https://www.imooc.com/article/301624)
+5. [文件系统缓存dirty_ratio与dirty_background_ratio两个参数区别](http://blog.sina.com.cn/s/blog_448574810101k1va.html)
+6. [PageCache系列之五 统一缓存之PageCache](https://zhuanlan.zhihu.com/p/42364591)

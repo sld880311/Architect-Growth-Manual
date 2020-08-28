@@ -1,0 +1,168 @@
+<!-- TOC -->
+
+- [/proc/vmstat详解](#procvmstat详解)
+  - [说明](#说明)
+  - [参考](#参考)
+
+<!-- /TOC -->
+# /proc/vmstat详解
+
+## 说明
+
+内核中虚拟内存的统计信息，对于性能分析有很大益处
+
+```bash
+nr_free_pages 24320
+nr_alloc_batch 293
+nr_inactive_anon 13215
+nr_active_anon 58077
+nr_inactive_file 148719
+nr_active_file 172552
+nr_unevictable 0
+nr_mlock 0
+nr_anon_pages 19933
+# 映射到文件的页数
+nr_mapped 8526
+nr_file_pages 348571
+# 脏页数
+nr_dirty 16
+# 会写页数
+nr_writeback 0
+nr_slab_reclaimable 17986
+nr_slab_unreclaimable 2986
+# 分配到页面的页数
+nr_page_table_pages 1396
+nr_kernel_stack 123
+# 不稳定页数
+nr_unstable 0
+nr_bounce 0
+nr_vmscan_write 0
+nr_vmscan_immediate_reclaim 26
+nr_writeback_temp 0
+nr_isolated_anon 0
+nr_isolated_file 0
+nr_shmem 27300
+nr_dirtied 8354426
+nr_written 8097732
+numa_hit 1187165492
+numa_miss 0
+numa_foreign 0
+numa_interleave 12459
+numa_local 1187165492
+numa_other 0
+workingset_refault 552268
+workingset_activate 81267
+workingset_nodereclaim 0
+nr_anon_transparent_hugepages 47
+nr_free_cma 0
+nr_dirty_threshold 94636
+nr_dirty_background_threshold 31545
+# 从启动到现在读入的内存页数
+pgpgin 3168538
+# 从启动到现在换出的内存页数
+pgpgout 49091671
+# 从启动到现在读入的交换分区页数
+pswpin 0
+# 从启动到现在换出的交换分区页数
+pswpout 0
+# 从启动到现在dma存储区分配的页数
+pgalloc_dma 3730811
+# 从启动到现在dma32存储区分配的页数
+pgalloc_dma32 1237816587
+# 从启动到现在普通存储区分配的页数
+pgalloc_normal 0
+pgalloc_movable 0
+# 从启动到现在释放的页数
+pgfree 1241571794
+# 从启动到现在激活的页数
+pgactivate 2698296
+# 从启动到现在去激活的页数
+pgdeactivate 747037
+# 从启动到现在二级页面错误数
+pgfault 4099623847
+# 从启动到现在一级页面错误数
+pgmajfault 4447
+pglazyfreed 0
+# 从启动到现在DMA存储区再填充的页面数
+pgrefill_dma 2398
+pgrefill_dma32 778799
+# 从启动到现在普通存储区填充的页数
+pgrefill_normal 0
+pgrefill_movable 0
+pgsteal_kswapd_dma 6587
+pgsteal_kswapd_dma32 1977434
+pgsteal_kswapd_normal 0
+pgsteal_kswapd_movable 0
+pgsteal_direct_dma 0
+pgsteal_direct_dma32 0
+pgsteal_direct_normal 0
+pgsteal_direct_movable 0
+# 从启动到现在kswapd后台进程扫描的DMA存储区页面数
+pgscan_kswapd_dma 6645
+pgscan_kswapd_dma32 1992050
+# 从启动到现在kswapd后台进程扫描的普通存储区页面数
+pgscan_kswapd_normal 0
+pgscan_kswapd_movable 0
+# 从启动到现在DMA存储区被直接回收的页面数
+pgscan_direct_dma 0
+pgscan_direct_dma32 0
+# 从启动到现在普通存储区被直接回收的页面数
+pgscan_direct_normal 0
+pgscan_direct_movable 0
+pgscan_direct_throttle 0
+zone_reclaim_failed 0
+# kswapd 之外其他线程在回收过程中，因为回收 inode 而释放的 pagecache page 个数（累计值）
+pginodesteal 0
+# 从启动到现在被扫描的切片数
+slabs_scanned 1120768
+# 在kswapd回收的过程中，因为回收inode而释放的 pagecache page 个数（累计值）
+kswapd_inodesteal 105460
+kswapd_low_wmark_hit_quickly 47
+kswapd_high_wmark_hit_quickly 198
+# 从启动到现在通过kswapd调用来回收的页面数
+pageoutrun 563
+# 从启动到现在请求直接回收的页面数
+allocstall 0
+# 从启动到现在轮换的页面数
+pgrotated 24
+drop_pagecache 0
+drop_slab 0
+numa_pte_updates 0
+numa_huge_pte_updates 0
+numa_hint_faults 0
+numa_hint_faults_local 0
+numa_pages_migrated 0
+pgmigrate_success 0
+pgmigrate_fail 0
+compact_migrate_scanned 0
+compact_free_scanned 0
+compact_isolated 0
+compact_stall 0
+compact_fail 0
+compact_success 0
+htlb_buddy_alloc_success 129
+htlb_buddy_alloc_fail 0
+unevictable_pgs_culled 0
+unevictable_pgs_scanned 0
+unevictable_pgs_rescued 0
+unevictable_pgs_mlocked 0
+unevictable_pgs_munlocked 0
+unevictable_pgs_cleared 0
+unevictable_pgs_stranded 0
+thp_fault_alloc 5482
+thp_fault_fallback 345
+thp_collapse_alloc 606
+thp_collapse_alloc_failed 48146
+thp_split 180
+thp_zero_page_alloc 2
+thp_zero_page_alloc_failed 0
+balloon_inflate 0
+balloon_deflate 0
+balloon_migrate 0
+swap_ra 0
+swap_ra_hit 0
+```
+
+## 参考
+
+1. [/proc/vmstat帮助手册](https://www.kernel.org/doc/Documentation/vm/transhuge.txt)

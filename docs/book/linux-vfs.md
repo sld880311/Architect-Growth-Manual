@@ -223,7 +223,17 @@ sunld/text.txt: ASCII text
 
 1. 根据文件名称找到对应的inode号码，通过ls -i或stat命令都可以查看到inode号码
 2. 根据inode号码获取inode信息
-3. 根据inode信息首先判断是否有权限然后获取block，读取数据
+3. 根据inode信息首先判断是否有权限
+4. 通过inode找到文件的地址空间（address_space），然后结合文件偏移（会转换成 page index）来找具体的page
+5. 如果page存在则说明文件内容已经被读取到内存中；如果不存在则需要在磁盘中读取
+
+<div align=center>
+
+![1598492844622.png](..\images\1598492844622.png)
+
+</div>
+
+
 
 #### inode大小
 
