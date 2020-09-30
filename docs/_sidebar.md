@@ -94,7 +94,7 @@
     - [MYSQL数据备份与恢复](book/database-mysql-backup-recovery.md)
     - [MYSQL高可用](book/database-mysql-high-availability.md)
     - [MYSQL show status详解](book/database-mysql-show-status.md)
-  - [数据库事务](book/database-事务.md)
+  - [数据库事务](book/database-transaction.md)
   - [数据库语法](book/database-语法.md)
   - [分布式事务](book/database-分布式事务.md)
   - [锁](book/database-锁.md)
@@ -210,3 +210,4 @@
       - [Centos7.2离线安装mysql5.7.20](book/database-mysql-install-5.7.20-centos7.2.md)
     - 其他
       - [SpringBoot常用配置参考](book/springboot-config-default.md)
+      - [常见面试题汇总](book/interview.md)
