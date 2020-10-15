@@ -96,7 +96,6 @@
     - [MYSQL show status详解](book/database-mysql-show-status.md)
   - [数据库事务](book/database-transaction.md)
   - [数据库语法](book/database-语法.md)
-  - [分布式事务](book/database-分布式事务.md)
   - [锁](book/database-锁.md)
 
 - 第五章 软件设计
@@ -187,7 +186,10 @@
 - 第34章 OpenStack
 - 第35章 YARN
   - [YARN](book/yarn.md)
-- [第36章 分布式缓存](book/分布式缓存.md)
+- [第36章 分布式]
+  - [分布式缓存](book/分布式缓存.md)
+  - [分布式协议](book/distributed-protocol.md)
+  - [分布式算法](book/distributed-algorithm.md)
 - [第37章 Cassandra](book/cassandra.md)
 - [第38章 Thrift](book/thrift.md)
 - [第38章 Dubbo](book/dubbo.md)

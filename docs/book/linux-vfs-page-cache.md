@@ -35,6 +35,16 @@
     - [避免PageCache回收出现的性能问题](#避免pagecache回收出现的性能问题)
       - [memory cgroup protection](#memory-cgroup-protection)
     - [出现load过高的原因](#出现load过高的原因)
+      - [直接内存回收引起](#直接内存回收引起)
+        - [内存回收过程](#内存回收过程)
+      - [系统中脏页积压过多](#系统中脏页积压过多)
+        - [内存申请过程](#内存申请过程)
+        - [解决方法](#解决方法)
+      - [系统numa策略配置不当](#系统numa策略配置不当)
+  - [内存泄漏](#内存泄漏)
+    - [OOM KILL逻辑](#oom-kill逻辑)
+    - [如何观察内核内存泄漏](#如何观察内核内存泄漏)
+    - [排查思路](#排查思路)
   - [其他](#其他-1)
     - [清理缓存buffer/cache](#清理缓存buffercache)
       - [运行sync将dirty的内容写回硬盘](#运行sync将dirty的内容写回硬盘)
@@ -151,7 +161,10 @@ SwapCached 是在打开了 **Swap** 分区后，把 Inactive(anon)+Active(anon) 
 
 ### Shmem
 
-Shmem 是指匿名共享映射这种方式分配的内存（free 命令中 shared 这一项），比如 tmpfs（临时文件系统）
+1. Shmem 是指匿名共享映射这种方式分配的内存（free 命令中 shared 这一项）
+2. 进程使用mmap(MAP_ANON|MAP_SHARED)的方式申请内存
+3. tmpfs： 磁盘的速度是远远低于内存的，有些应用程序为了提升性能，会避免将一些无需持续化存储的数据写入到磁盘，而是把这部分临时数据写入到内存中，然后定期或者在不需要这部分数据时，清理掉这部分内容来释放出内存。在这种需求下，就产生了一种特殊的 Shmem：tmpfs
+4. 
 
 ### frem命令的说明
 
@@ -457,9 +470,86 @@ Linux 3.10.0-1062.9.1.el7.x86_64 (instance-gctg007a) 	08/18/2020 	_x86_64_	(1 CP
 
 ### 出现load过高的原因
 
-1. 直接内存回收引起
-2. 系统中脏页积压过多
-3. 系统numa策略配置不当
+#### 直接内存回收引起
+
+##### 内存回收过程
+
+<div align=center>
+
+![1602664770697.png](..\images\1602664770697.png)
+
+</div>
+
+后台回收原理：
+
+<div align=center>
+
+![1602664859410.png](..\images\1602664859410.png)
+
+</div>
+
+通过调整参数vm.min_free_kbytes来提高后台进程回收频率。
+
+```bash
+cat /proc/sys/vm/min_free_kbytes
+vi /etc/sysctl.conf vm.min_free_kbytes=524288 
+sysctl -p
+```
+
+通过调整内存水位，在一定程度上保障了应用的内存申请，但是同时也带来了一定的内存浪费，因为系统始终要保障有这么多的 free 内存，这就压缩了 Page Cache 的空间。调整的效果你可以通过 /proc/zoneinfo 来观察
+
+#### 系统中脏页积压过多
+
+##### 内存申请过程
+
+<div align=center>
+
+![1602665372291.png](..\images\1602665372291.png)
+
+</div>
+
+##### 解决方法
+
+设置配置：/proc/vmstat
+```bash
+vm.dirty_background_bytes = 0
+vm.dirty_background_ratio = 10
+vm.dirty_bytes = 0
+vm.dirty_expire_centisecs = 3000
+vm.dirty_ratio = 20
+```
+
+#### 系统numa策略配置不当
+
+## 内存泄漏
+
+### OOM KILL逻辑
+
+<div align=center>
+
+![1602661306900.png](..\images\1602661306900.png)
+
+</div>
+
+可以调整oom_score_adj来防止进程被杀掉（不建议配置）
+
+### 如何观察内核内存泄漏
+
+1. 如果 /proc/meminfo 中内核内存（比如 VmallocUsed 和 SUnreclaim）太大，那很有可能发生了内核内存泄漏
+2. 周期性地观察 VmallocUsed 和 SUnreclaim 的变化，如果它们持续增长而不下降，也可能是发生了内核内存泄漏
+3. 通过 /proc/vmallocinfo 来看到该模块的内存使用情况
+4. kmemleak 内核内存分析工具
+
+### 排查思路
+
+<div align=center>
+
+![1602663224947.png](..\images\1602663224947.png)
+
+</div>
+
+1. 应用程序可以通过 malloc() 和 free() 在用户态申请和释放内存，与之对应，可以通过 kmalloc()/kfree() 以及 vmalloc()/vfree() 在内核态申请和释放内存
+2. vmalloc 申请的内存会体现在 VmallocUsed 这一项中，即已使用的 Vmalloc 区大小；而 kmalloc 申请的内存则是体现在 Slab 这一项中，它又分为两部分，其中 SReclaimable 是指在内存紧张的时候可以被回收的内存，而 SUnreclaim 则是不可以被回收只能主动释放的内存。
 
 ## 其他
 
