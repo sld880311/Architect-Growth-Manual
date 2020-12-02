@@ -186,7 +186,7 @@
 - 第34章 OpenStack
 - 第35章 YARN
   - [YARN](book/yarn.md)
-- [第36章 分布式]
+- 第36章 分布式
   - [分布式缓存](book/分布式缓存.md)
   - [分布式协议](book/distributed-protocol.md)
   - [分布式算法](book/distributed-algorithm.md)

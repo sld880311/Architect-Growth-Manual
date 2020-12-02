@@ -179,7 +179,7 @@ Swap:             0           0           0
 
 通过源码可知：**buff/cache = Buffers + Cached + SReclaimable**
 
-SReclaimable 是指可以被回收的内核内存，包括 dentry 和 inode。
+**SReclaimable 是指可以被回收的内核内存，包括 dentry 和 inode。**
 
 #### 缓存的具体含义
 
