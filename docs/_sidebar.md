@@ -108,7 +108,6 @@
 - 第六章 Linux操作系统
   - 网络
   - 计算
-    - [CPU高速缓存与内存一致性](book/linux-compute-cpu-cache.md)
   - 文件系统
     - [零拷贝（Zero-Copy）](book/linux-storage-zero-copy.md)
     - [Linux文件系统详解](book/linux-vfs.md)
