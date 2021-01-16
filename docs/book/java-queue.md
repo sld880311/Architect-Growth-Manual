@@ -14,7 +14,6 @@
 		- [LinkedTransferQueue](#linkedtransferqueue)
 		- [LinkedBlockingDeque](#linkedblockingdeque)
 	- [Java线程阻塞的代价](#java线程阻塞的代价)
-	- [什么是 AQS（抽象的队列同步器）](#什么是-aqs抽象的队列同步器)
 
 <!-- /TOC -->
 # Java中的阻塞队列
@@ -360,35 +359,4 @@ java的线程是映射到操作系统原生线程之上的，如果要阻塞或�
 	如果线程状态切换是一个高频操作时，这将会消耗很多CPU处理时间；
 	如果对于那些需要同步的简单的代码块，获取锁挂起操作消耗的时间比用户代码执行的时间还要长，这种同步策略显然非常糟糕的。
 synchronized会导致争用不到锁的线程进入阻塞状态，所以说它是java语言中一个重量级的同步操纵，被称为重量级锁，为了缓解上述性能问题，JVM从1.5开始，引入了轻量锁与偏向锁，默认启用了自旋锁，他们都属于乐观锁。
-
-## 什么是 AQS（抽象的队列同步器）
-
-AbstractQueuedSynchronizer 类如其名，抽象的队列式的同步器，AQS 定义了一套多线程访问共享资源的同步器框架，许多同步类实现都依赖于它，如常用的
-ReentrantLock/Semaphore/CountDownLatch。 
-<div align=center>
-
-![1589109265967.png](..\images\1589109265967.png)
-
-</div>
-
-它维护了一个 volatile int state（代表共享资源）和一个 FIFO 线程等待队列（多线程争用资源被阻塞时会进入此队列）。这里 volatile 是核心关键词，具体 volatile 的语义，在此不述。state 的访问方式有三种: 
-getState() setState() 
-compareAndSetState() 
-AQS 定义两种资源共享方式 
-Exclusive独占资源-ReentrantLock 
-Exclusive（独占，只有一个线程能执行，如 ReentrantLock） 
-Share共享资源-Semaphore/CountDownLatch 
-Share（共享，多个线程可同时执行，如 Semaphore/CountDownLatch）。 
-AQS只是一个框架，具体资源的获取/释放方式交由自定义同步器去实现，AQS这里只定义了一个接口，具体资源的获取交由自定义同步器去实现了（通过state的get/set/CAS)之所以没有定义成 abstract，是因为独占模式下只用实现 tryAcquire-tryRelease，而共享模式下只用实现 tryAcquireShared-tryReleaseShared。如果都定义成abstract，那么每个模式也要去实现另一模式下的接口。不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/ 唤醒出队等），AQS 已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法： 
-1． isHeldExclusively()：该线程是否正在独占资源。只有用到 condition 才需要去实现它。 
-2． tryAcquire(int)：独占方式。尝试获取资源，成功则返回 true，失败则返回 false。 
-3． tryRelease(int)：独占方式。尝试释放资源，成功则返回 true，失败则返回 false。 
-4． tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0 表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。 
-5． tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回 true，否则返回 false。 
- 
-同步器的实现是ABS核心（state资源状态计数） 
-同步器的实现是 ABS 核心，以 ReentrantLock 为例，state 初始化为 0，表示未锁定状态。A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1。此后，其他线程再 tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A 线程自己是可以重复获取此锁的（state 会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证 state 是能回到零态的。 
-以 CountDownLatch 以例，任务分为 N 个子线程去执行，state 也初始化为 N（注意 N 要与线程个数一致）。这 N 个子线程是并行执行的，每个子线程执行完后 countDown()一次，state 会 CAS 减1。等到所有子线程都执行完后(即state=0)，会 unpark()主调用线程，然后主调用线程就会从 await()函数返回，继续后余动作。 
-ReentrantReadWriteLock 实现独占和共享两种方式 
-  一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现 tryAcquiretryRelease、tryAcquireShared-tryReleaseShared 中的一种即可。但 AQS 也支持自定义同步器同时实现独占和共享两种方式，如 ReentrantReadWriteLock。 
 

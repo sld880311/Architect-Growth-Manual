@@ -1,6 +1,8 @@
 <!-- TOC -->
 
-- [AbstractQueuedSynchronizer详解](#abstractqueuedsynchronizer详解)
+- [AbstractQueuedSynchronizer（AQS抽象的队列同步器）](#abstractqueuedsynchronizeraqs抽象的队列同步器)
+  - [原理结构](#原理结构)
+  - [类结构](#类结构)
   - [锁的实现要点](#锁的实现要点)
   - [公平锁与非公平锁的实现](#公平锁与非公平锁的实现)
     - [AbstractQueuedSynchronizer.acquire实现](#abstractqueuedsynchronizeracquire实现)
@@ -15,7 +17,34 @@
     - [tryLock](#trylock)
 
 <!-- /TOC -->
-# AbstractQueuedSynchronizer详解
+# AbstractQueuedSynchronizer（AQS抽象的队列同步器）
+
+<font color="red">AQS是实现同步器的基础组件，并发包中锁的底层实现就是使用AQS来完成的</font>
+
+## 原理结构
+
+<div align=center>
+
+![1589109265967.png](..\images\1589109265967.png)
+
+</div>
+
+1. 使用`volatile int state`代码共享资源的状态，有三总访问方式
+   -  getState()
+   -  setState()
+   -  compareAndSetState()
+2. 多线程竞争资源时使用阻塞的方式进入FIFO双向等待队列
+3. 两种资源共享方式
+   - Exclusive独占资源-ReentrantLock ，只有一个线程执行
+   - Share共享资源-Semaphore/CountDownLatch，多个线程同时执行
+4. 自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/ 唤醒出队等），AQS 已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法： 
+   - isHeldExclusively()：该线程是否正在独占资源。只有用到 condition 才需要去实现它。 
+   - tryAcquire(int)：独占。尝试获取资源，成功true，失败false。 
+   - tryRelease(int)：独占。尝试释放资源，成功true，失败false。
+   - tryAcquireShared(int)：共享。尝试获取资源。负数表示失败；0 表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。 
+   - tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回 true，否则返回 false。 
+
+## 类结构
 
 <div align=center>
 

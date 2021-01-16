@@ -44,7 +44,7 @@ public class ThreadSafe extends Thread{
 ```java
 /**
 * 1. 测试当前线程是否被中断
-* 2. 执行该方法之后会清楚当前线程的重点状态。
+* 2. 执行该方法之后会清除当前线程的中断状态。
 * 3. 如果中断一个已经不活跃的线程，则返回false
 *
 * @return  <code>true</code> if the current thread has been interrupted;
