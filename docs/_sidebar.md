@@ -167,7 +167,7 @@
 - 第18章 Tomcat
 - [第19章 微服务](book/微服务.md)
 - [第20章 日志组件](book/logger.md)
-- [第21章 Zookpeer](book/zookpeer.md)
+- [第21章 Zookpeer](book/zookeeper.md)
 - [第22章 Kafka](book/kafka.md)
 - [第23章 RabbitMQ](book/rabbitmq.md)
 - [第24章 Hbase](book/hbase.md)
@@ -205,7 +205,7 @@
     - excel
     - 安装部署
       - [Jdk1.6+mysql5.6+tomcat1.6安装](book/linux-install-jdk1.6-mysql5.6-tomcat1.6.md)
-      - [Centos7.2 安装zookeeper3.4.11](book/zookpeer-install-3.4.11-in-centos7.2.md)
+      - [Centos7.2 安装zookeeper3.4.11](book/zookeeper-install-3.4.11-in-centos7.2.md)
       - [Hadoop开发环境安装（Hadoop2.7.4）](book/hadoop-install-2.7.4.md)
       - [Hadoop1.X伪分布式安装](book/hadoop-install-1.x.md)
       - [Centos7.2离线安装mysql5.7.20](book/database-mysql-install-5.7.20-centos7.2.md)
