@@ -122,7 +122,7 @@
     - [netstat/ss](book/linux-netstat-ss.md)
     - [vmstat](book/linux-vmstat.md)
   - 其他
-    - [常用性能分析工具](book/linux-performance-analysis-tools.md)
+    - [性能优化](book/linux-performance-optimization.md)
     - /proc解析
       - [/proc/vmstat详解](book/linux-proc-vmstat.md)
 
